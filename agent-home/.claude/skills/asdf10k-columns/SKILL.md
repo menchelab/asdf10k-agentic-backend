@@ -38,8 +38,11 @@ list of terms):
 - Name columns `agent_<snake_case><suffix>` with the suffix that matches the data (`agent_pocket_score_n`,
   `agent_druggable_c`, `agent_targets_a`). Never reuse an existing column name.
 - Ids must match `_id` in `input/nodes.tsv`.
-- Use the `propose_node_columns` tool when it is available (it validates the file and shows the user
-  a card with an Add button); until then, tell the user the file path and what each column means.
+- Call `propose_node_columns({ path, columns: [{ name, description }], summary })`. It validates
+  the file (id column, suffixes, numbers, separators, ids in the graph, name clashes) and either
+  returns errors to fix or shows the user a card with **Add** / **Discard**. The user decides; you
+  learn the outcome with the next message. After Add, the column is in the app like any other
+  (dropdowns, Distributions, subset queries) and comes back in the next `input/nodes.tsv` upload.
 
 ## Which window uses which kind
 

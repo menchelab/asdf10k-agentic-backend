@@ -16,6 +16,7 @@ import { config } from './config.js';
 import { SessionManager } from './sessions/SessionManager.js';
 import {
   CreateSessionRequestSchema,
+  FeedbackRequestSchema,
   PostMessageRequestSchema,
   PROTOCOL_VERSION,
   PutGraphRequestSchema,
@@ -93,6 +94,16 @@ app.put('/sessions/:id/graph', async (c) => {
   const parsed = PutGraphRequestSchema.safeParse(body);
   if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
   return c.json(await sessions.setGraph(id, parsed.data));
+});
+
+/** What the user did with a card / button; the agent hears it with the next message. */
+app.post('/sessions/:id/feedback', async (c) => {
+  const id = c.req.param('id');
+  if (!(await sessions.get(id))) return c.json({ error: 'not found' }, 404);
+  const parsed = FeedbackRequestSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
+  await sessions.postFeedback(id, parsed.data);
+  return c.body(null, 202);
 });
 
 app.post('/sessions/:id/interrupt', async (c) => {

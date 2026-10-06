@@ -3,14 +3,15 @@
  * (asdf10k/docs/agent-window-plan.md, section 15).
  */
 
-import type { Options } from '@anthropic-ai/claude-agent-sdk';
+import type { McpServerConfig, Options } from '@anthropic-ai/claude-agent-sdk';
 import { config } from '../config.js';
 import { SYSTEM_PROMPT_APPEND } from './systemPrompt.js';
 
-export function buildAgentOptions(workspace: string, resume?: string): Options {
+export function buildAgentOptions(workspace: string, resume: string | undefined, mcpServers: Record<string, McpServerConfig>): Options {
   return {
     cwd: workspace,
     ...(resume ? { resume } : {}),
+    mcpServers,
     // The default loads the backend user's ~/.claude settings and skills; 'project' = the
     // workspace and additionalDirectories only.
     settingSources: ['project'],

@@ -47,6 +47,11 @@ describe('renderAppContext', () => {
     expect(block).toContain('since your last message: the graph files were re-uploaded (new node columns agent_score_n); the selection changed (0 -> 2 nodes)');
   });
 
+  it('tells the agent what the user did with cards and buttons', () => {
+    const block = renderAppContext(snapshot, null, ['saved subset hubs_2 (12 nodes)', 'added columns agent_x_n']);
+    expect(block).toContain('since your last message the user: saved subset hubs_2 (12 nodes); added columns agent_x_n');
+  });
+
   it('composes the prompt with the block first', () => {
     expect(composePrompt('hi', '<app_context>\nx\n</app_context>')).toBe('<app_context>\nx\n</app_context>\n\nhi');
   });

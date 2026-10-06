@@ -14,7 +14,8 @@ import { SessionMetaSchema, type AgentEvent, type AgentEventInput, type SessionM
 import { EventNormalizer } from '../agent/EventNormalizer.js';
 import { LiveQuery, type AgentRunner } from '../agent/liveQuery.js';
 import { buildAgentOptions } from '../agent/agentOptions.js';
-import { composePrompt, renderAppContext, writeAppInputs } from '../agent/appContext.js';
+import { composePrompt, renderAppContext, renderUserActions, writeAppInputs } from '../agent/appContext.js';
+import { createAppToolsServer } from '../agent/appTools.js';
 import { FakeAgent } from '../fake/FakeAgent.js';
 import type { AppSnapshot } from '../protocol.js';
 
@@ -46,6 +47,8 @@ export class SessionManager {
   private readonly live = new Map<string, LiveSession>();
   private readonly logs = new Map<string, EventLog>();
   private readonly metas = new Map<string, SessionMeta>();
+  /** What the user did with cards / buttons since the last message, per session (prefixed to the next prompt). */
+  private readonly feedback = new Map<string, string[]>();
 
   get liveCount(): number {
     return this.live.size;
@@ -144,9 +147,11 @@ export class SessionManager {
     if (!meta) throw new NotFoundError(id);
     const session = await this.ensureLive(id, meta);
     let prompt = text;
+    const userActions = this.feedback.get(id) ?? [];
+    this.feedback.delete(id);
     if (snapshot) {
       const previous = await writeAppInputs(this.workspaceDir(id), snapshot);
-      let context = renderAppContext(snapshot, previous);
+      let context = renderAppContext(snapshot, previous, userActions);
       if (snapshot.graphHash !== meta.graphHash) {
         context = context.replace(
           '</app_context>',
@@ -154,6 +159,8 @@ export class SessionManager {
         );
       }
       prompt = composePrompt(text, context);
+    } else if (userActions.length > 0) {
+      prompt = composePrompt(text, renderUserActions(userActions));
     }
     const messageId = randomUUID();
     session.log.append({ type: 'user_message', messageId, text });
@@ -162,6 +169,15 @@ export class SessionManager {
     session.runner.push(prompt, messageId);
     this.touch(id, session);
     return { messageId };
+  }
+
+  /** The app reports what the user did with a card / button; logged, and told to the agent with the next message. */
+  async postFeedback(id: string, req: { text: string; proposalId?: string | undefined; outcome?: string | undefined }): Promise<void> {
+    const meta = await this.get(id);
+    if (!meta) throw new NotFoundError(id);
+    const log = await this.log(id);
+    log.append({ type: 'feedback', text: req.text, ...(req.proposalId ? { proposalId: req.proposalId } : {}), ...(req.outcome ? { outcome: req.outcome } : {}) });
+    this.feedback.set(id, [...(this.feedback.get(id) ?? []), req.text]);
   }
 
   /** Interrupts the current run; false when the session has no live agent. */
@@ -192,11 +208,18 @@ export class SessionManager {
       this.touch(id, session);
     };
     if (config.fake) {
-      session.runner = new FakeAgent(emit);
+      session.runner = new FakeAgent(emit, this.workspaceDir(id), id, meta.dataset);
     } else {
       const normalizer = new EventNormalizer(emit, id.slice(0, 8));
       session.normalizer = normalizer;
-      session.runner = new LiveQuery(buildAgentOptions(this.workspaceDir(id), meta.sdkSessionId), {
+      const tools = createAppToolsServer({
+        sessionId: id,
+        dataset: meta.dataset,
+        workspace: this.workspaceDir(id),
+        emit,
+        currentRunId: () => normalizer.currentRunId
+      });
+      session.runner = new LiveQuery(buildAgentOptions(this.workspaceDir(id), meta.sdkSessionId, { asdf10k: tools }), {
         onMessage: (message) => normalizer.handle(message),
         onExit: (error) => {
           normalizer.handleExit(error);

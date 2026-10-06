@@ -20,8 +20,43 @@ export const TodoItemSchema = z.object({
 });
 export type TodoItem = z.infer<typeof TodoItemSchema>;
 
-export const ProposalKindSchema = z.enum(['columns', 'subsets', 'command']);
+export const ProposalKindSchema = z.enum(['columns']);
 export type ProposalKind = z.infer<typeof ProposalKindSchema>;
+
+/** Data of a `columns` proposal (propose_node_columns). `path` is workspace-relative; the app resolves it to the session file URL. */
+export const ColumnsProposalDataSchema = z.object({
+  path: z.string(),
+  columns: z.array(z.object({ name: z.string(), kind: z.string(), description: z.string(), nonEmpty: z.number() })),
+  /** Rows whose id is in the graph / rows in the file. */
+  matched: z.number(),
+  total: z.number(),
+  header: z.array(z.string()),
+  previewRows: z.array(z.array(z.string()))
+});
+export type ColumnsProposalData = z.infer<typeof ColumnsProposalDataSchema>;
+
+export const ReportNodeRoleSchema = z.enum(['subject', 'evidence', 'candidate', 'context']);
+export type ReportNodeRole = z.infer<typeof ReportNodeRoleSchema>;
+export const REPORT_NODE_ROLES: readonly ReportNodeRole[] = ReportNodeRoleSchema.options;
+
+/** A published report (plan section 16). Markdown and metadata travel in the event; files are workspace-relative paths. */
+export const ReportSchema = z.object({
+  reportId: z.string(),
+  sessionId: z.string(),
+  title: z.string(),
+  summary: z.string(),
+  dataset: z.string(),
+  graphHash: z.string().optional(),
+  nodes: z.array(z.object({ id: z.string(), role: ReportNodeRoleSchema })),
+  tags: z.array(z.string()),
+  /** Markdown body (front matter removed). */
+  markdown: z.string(),
+  /** Workspace-relative files the markdown references (images, data). */
+  files: z.array(z.string()),
+  sourcePath: z.string(),
+  createdAt: z.number()
+});
+export type Report = z.infer<typeof ReportSchema>;
 
 const base = { seq: z.number().int().nonnegative(), ts: z.number() };
 const inRun = { runId: z.string() };
@@ -63,16 +98,7 @@ export const AgentEventSchema = z.discriminatedUnion('type', [
   z.object({ ...base, type: z.literal('tool_end'), ...inRun, toolUseId: z.string(), ok: z.boolean(), summary: z.string(), durationMs: z.number() }),
   /** The agent's current to-do list (full list each time). */
   z.object({ ...base, type: z.literal('todos'), ...inRun, items: z.array(TodoItemSchema) }),
-  z.object({ ...base, type: z.literal('image'), ...inRun, url: z.string(), caption: z.string(), toolUseId: z.string().optional() }),
-  z.object({
-    ...base,
-    type: z.literal('table'),
-    ...inRun,
-    url: z.string(),
-    caption: z.string(),
-    columns: z.array(z.string()),
-    previewRows: z.array(z.array(z.string()))
-  }),
+  /** A tool proposal shown as a card (columns: Add / Discard). */
   z.object({
     ...base,
     type: z.literal('proposal'),
@@ -81,9 +107,12 @@ export const AgentEventSchema = z.discriminatedUnion('type', [
     kind: ProposalKindSchema,
     graphHash: z.string().optional(),
     summary: z.string(),
-    data: z.unknown()
+    data: ColumnsProposalDataSchema
   }),
-  z.object({ ...base, type: z.literal('proposal_outcome'), proposalId: z.string(), itemId: z.string().optional(), outcome: z.string(), detail: z.string().optional() }),
+  /** publish_report: the report itself (the app keeps it in its store). */
+  z.object({ ...base, type: z.literal('report'), ...inRun, report: ReportSchema }),
+  /** What the user did with a card / button (posted by the app; prefixed to the agent's next message). */
+  z.object({ ...base, type: z.literal('feedback'), text: z.string(), proposalId: z.string().optional(), outcome: z.string().optional() }),
   z.object({
     ...base,
     type: z.literal('run_end'),
@@ -171,7 +200,8 @@ export const PostMessageRequestSchema = z.object({
   /** Window descriptions + command list (phase 4). */
   catalog: z.unknown().optional()
 });
-export const ProposalOutcomeRequestSchema = z.object({ itemId: z.string().optional(), outcome: z.string().min(1), detail: z.string().optional() });
+/** POST /sessions/:id/feedback: one line the agent should know ("saved subset hubs_2 (12 nodes)"), optionally tied to a proposal card. */
+export const FeedbackRequestSchema = z.object({ text: z.string().min(1), proposalId: z.string().optional(), outcome: z.string().optional() });
 
 export interface HealthResponse {
   ok: boolean;

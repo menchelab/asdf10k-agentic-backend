@@ -44,8 +44,8 @@ export async function writeAppInputs(workspace: string, snapshot: AppSnapshot): 
   return previous;
 }
 
-/** The block the agent sees before the user's text. */
-export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | null): string {
+/** The block the agent sees before the user's text. `userActions` = what the user did with cards / buttons since the last message. */
+export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | null, userActions: string[] = []): string {
   const lines: string[] = [];
   lines.push(`dataset: ${snapshot.dataset} - ${snapshot.nodeCount} nodes, ${snapshot.edgeCount} edges, graph hash ${snapshot.graphHash}`);
   lines.push('files: input/nodes.tsv (all nodes, every column, _id = node id), input/edges.tsv (source, target = node ids), input/selection.tsv, input/subset_library.tsv, input/app_context.json (this context in full)');
@@ -77,12 +77,18 @@ export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | 
 
   const changes = describeChanges(snapshot, previous);
   if (changes.length > 0) lines.push(`since your last message: ${changes.join('; ')}`);
+  if (userActions.length > 0) lines.push(`since your last message the user: ${userActions.join('; ')}`);
 
   return `<app_context>\n${lines.join('\n')}\n</app_context>`;
 }
 
 export function composePrompt(text: string, context: string): string {
   return `${context}\n\n${text}`;
+}
+
+/** Without a snapshot (older clients): only the user actions. */
+export function renderUserActions(userActions: string[]): string {
+  return `<app_context>\nsince your last message the user: ${userActions.join('; ')}\n</app_context>`;
 }
 
 // --- helpers -------------------------------------------------------------------------------------

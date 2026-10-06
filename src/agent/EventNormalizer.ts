@@ -44,6 +44,10 @@ export class EventNormalizer {
     return this.runId !== null;
   }
 
+  get currentRunId(): string | null {
+    return this.runId;
+  }
+
   /** A user message was pushed into the live query (before the SDK sees it). */
   noteUserMessage(messageId: string): void {
     this.pendingMessageIds.push(messageId);

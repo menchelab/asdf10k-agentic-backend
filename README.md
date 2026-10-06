@@ -63,3 +63,15 @@ normaliser.
   (`home-skill` is the spike's test skill).
 - `spike/` - phase 0 scripts and fixtures.
 - `src/` - the server (phase 1).
+
+## Tools and actions (phase 3)
+
+- `src/agent/appTools.ts`: the in-process MCP server `asdf10k` with `propose_node_columns`
+  (validates a TSV against the uploaded graph: `src/agent/validate/columnsTsv.ts`, emits a
+  `proposal` event) and `publish_report` (front matter + body: `src/agent/validate/report.ts`,
+  emits a `report` event). One server per live session.
+- Actions in markdown (`cmd:` links, ```` ```asdf10k ```` blocks) need no tool; the app validates and
+  runs them and posts what happened to `POST /sessions/:id/feedback`, which is prefixed to the
+  next prompt ("since your last message the user: ...").
+- Skills: `asdf10k-columns`, `asdf10k-app` (actions syntax), `asdf10k-reports` (front matter,
+  roles, template).
