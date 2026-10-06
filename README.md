@@ -9,8 +9,10 @@ The plan, architecture, protocol and phase status live in the app repo:
 
 ## Status
 
-Phase 0 (spike) and phase 1 (chat with progress) done on 2026-10-06; phase 2 (app awareness:
-graph upload, app context, skills, Python) built the same day. Details and findings: the plan.
+Phases 0-4 done on 2026-10-06 (tags `phase-1` .. `phase-4`): spike, chat with progress, app
+awareness (graph upload, app context, skills, Python), results into the app (actions, columns,
+reports), and the app's capabilities (generated catalog skill, `run_app_command`). Details and
+findings: the plan.
 
 ## Requirements
 
@@ -75,3 +77,23 @@ normaliser.
   next prompt ("since your last message the user: ...").
 - Skills: `asdf10k-columns`, `asdf10k-app` (actions syntax), `asdf10k-reports` (front matter,
   roles, template).
+
+## The app's capabilities (phase 4)
+
+- The app sends its **catalog** with a message when its hash changes (`PostMessageRequest.catalog`:
+  ring menu settings with options, actions, windows with purpose / scope / options, commands with
+  JSON Schemas). `src/agent/catalogSkill.ts` renders it into the generated skill
+  `<workspace>/.claude/skills/asdf10k-app-catalog/SKILL.md` and the session reloads its skills; the
+  catalog is kept in the session meta for the policy check.
+- `run_app_command` (`src/agent/appTools.ts`): the agent runs an app command. `src/agent/appCommandPolicy.ts`
+  allows effects `view` (`settings.set`, `window.open`, `menu.run`) and `compute` (`rwr.run`,
+  `cluster.run`); `selection` and `data` commands are refused with a hint to offer a button. The
+  session emits a non-persisted `app_request` event, the Agent window runs the command, re-uploads
+  the graph when it changed and answers at `POST /sessions/:id/app-results/:requestId`; the tool
+  result lists the command's result, new columns and the viz settings now. 120 s timeout, an error
+  when no window is attached.
+- The snapshot carries the current viz settings (`viz`); `src/agent/appContext.ts` renders them
+  into the `<app_context>` block. The prompt (`src/agent/systemPrompt.ts`) and the `asdf10k-app`
+  skill say: app tools before Python, apply a setting when asked and suggest it with a settings
+  card (```` ```asdf10k {"type":"settings",...} ````) otherwise, suggest windows as
+  `cmd:window.open?type=...` buttons.
