@@ -208,10 +208,12 @@ export const CatalogSettingSchema = z.object({
   min: z.number().optional(),
   max: z.number().optional(),
   step: z.number().optional(),
-  unit: z.string().optional()
+  unit: z.string().optional(),
+  /** One line on what the setting does (hand-written notes in AppCatalog.ts). */
+  description: z.string().optional()
 });
 export type CatalogSetting = z.infer<typeof CatalogSettingSchema>;
-export const CatalogActionSchema = z.object({ id: z.string(), label: z.string(), category: z.string(), effect: z.enum(['view', 'selection']) });
+export const CatalogActionSchema = z.object({ id: z.string(), label: z.string(), category: z.string(), effect: z.enum(['view', 'selection']), description: z.string().optional() });
 export type CatalogAction = z.infer<typeof CatalogActionSchema>;
 export const CatalogWindowSchema = z.object({
   type: z.string(),
