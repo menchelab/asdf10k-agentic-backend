@@ -96,6 +96,12 @@ Scaling methods: `linear`, `log` (positive, skewed), `symlog` (skewed, with zero
 RWR probabilities, scores), `quantile` (rank-spread). Pick the method with the attribute: a linear
 colour scale on RWR probabilities shows almost nothing.
 
+Not yours to change: the **highlight mode** (`highlight.*` - whether the selection is marked, the
+others faded, only the selection's edges drawn). `settings.set` refuses those ids; in a settings
+card they appear as manual steps. Read their current values from `viz:` and tell the user what to
+change where ("Settings window (gear icon) › Highlight nodes › turn on Fade others and set Fade
+opacity to 0.1").
+
 ## Running the app's tools yourself: `run_app_command`
 
 `run_app_command({ command, params })` runs a command in the app and returns its result. Allowed:

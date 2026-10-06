@@ -92,6 +92,10 @@ normaliser.
   the graph when it changed and answers at `POST /sessions/:id/app-results/:requestId`; the tool
   result lists the command's result, new columns and the viz settings now. 120 s timeout, an error
   when no window is attached.
+- Read-only settings: the catalog marks the `highlight.*` settings (highlight mode: how the
+  selection is marked, fade others) `readOnly`; the skill explains them and tells the agent to
+  describe the change in the app's Settings window instead of calling `settings.set` (the app
+  refuses those ids anyway).
 - The snapshot carries the current viz settings (`viz`); `src/agent/appContext.ts` renders them
   into the `<app_context>` block. The prompt (`src/agent/systemPrompt.ts`) and the `asdf10k-app`
   skill say: app tools before Python, apply a setting when asked and suggest it with a settings

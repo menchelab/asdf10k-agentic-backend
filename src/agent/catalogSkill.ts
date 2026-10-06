@@ -35,9 +35,13 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
     if (s.type === 'dropdown') detail = (s.options ?? []).map((o) => `\`${o}\``).join(', ');
     else if (s.type === 'number') detail = `${s.min ?? '-inf'} .. ${s.max ?? 'inf'}${s.step ? `, step ${s.step}` : ''}${s.unit ? ` ${s.unit}` : ''}`;
     else detail = 'true / false';
-    lines.push(`| \`${s.id}\` | ${s.label} | ${s.category} | ${s.type} | ${detail} | ${s.description ?? ''} |`);
+    lines.push(`| \`${s.id}\` | ${s.label} | ${s.category} | ${s.type}${s.readOnly ? ' (read-only)' : ''} | ${detail} | ${s.description ?? ''} |`);
   }
   lines.push('');
+  if (catalog.settings.some((s) => s.readOnly)) {
+    lines.push('**Read-only settings** (marked above, the `highlight.*` ids): the **highlight mode** - how the current selection is marked in 3D (bigger nodes, glow, bloom, highlighted edges) and whether everything else fades (`highlight.fadeOthers` + `highlight.fadeOpacity` for nodes, `highlight.fadeEdges` + `highlight.fadeEdgesOpacity` for edges, `highlight.subsetEdgesOnly` = draw only the selection\'s edges, `highlight.edgeSubsetMode` = induced / incident; the user\'s isolate mode (i key) is the same with opacity 0) - stays with the user. `settings.set` refuses these ids and a settings card shows them as manual steps. When such a change would help, read the current values from the `viz:` line of the app context and tell the user what to change where: the Settings window (gear icon in the icon bar) › section "Highlight nodes" or "Edge highlighting" › the label from the table, with the value.');
+    lines.push('');
+  }
   lines.push('Scaling methods (`*.colorMethod`, `*.sizeMethod`, `*.widthMethod`): `linear` for evenly spread values, `log` for positive skewed values, `symlog` for skewed values that include 0 or negatives (RWR probabilities, scores), `quantile` to rank-spread any distribution.');
   lines.push('');
 

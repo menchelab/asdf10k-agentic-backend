@@ -210,7 +210,9 @@ export const CatalogSettingSchema = z.object({
   step: z.number().optional(),
   unit: z.string().optional(),
   /** One line on what the setting does (hand-written notes in AppCatalog.ts). */
-  description: z.string().optional()
+  description: z.string().optional(),
+  /** The agent may read but not change it (settings.set refuses it); it tells the user what to change where. */
+  readOnly: z.boolean().optional()
 });
 export type CatalogSetting = z.infer<typeof CatalogSettingSchema>;
 export const CatalogActionSchema = z.object({ id: z.string(), label: z.string(), category: z.string(), effect: z.enum(['view', 'selection']), description: z.string().optional() });
