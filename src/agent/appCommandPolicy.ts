@@ -14,7 +14,14 @@ export type PolicyCheck = { ok: true; label: string; effect: string } | { ok: fa
 export function checkAppCommand(catalog: AppCatalog | null, command: string): PolicyCheck {
   if (!catalog) return { ok: false, error: 'The app has not sent its catalog yet: the user needs to send one message from the Agent window first.' };
   const cmd = catalog.commands.find((c) => c.id === command);
-  if (!cmd) return { ok: false, error: `Unknown command "${command}". Commands: ${catalog.commands.map((c) => `${c.id} (${c.effect})`).join(', ')}.` };
+  if (!cmd) {
+    // a ring menu id used as a command: say how it runs
+    if (catalog.actions.some((a) => a.id === command)) {
+      return { ok: false, error: command.startsWith('subset.') ? `"${command}" is a ring menu subset action: offer it as a button [label](cmd:subset.action?id=${command}) - it changes the selection, so the user clicks.` : `"${command}" is a ring menu action: run it with menu.run { id: "${command}" } (or offer [label](cmd:menu.run?id=${command})).` };
+    }
+    if (catalog.settings.some((s) => s.id === command)) return { ok: false, error: `"${command}" is a setting: change it with a settings card ({"type":"settings","changes":[{"id":"${command}","value":...}]}).` };
+    return { ok: false, error: `Unknown command "${command}". Commands: ${catalog.commands.map((c) => `${c.id} (${c.effect})`).join(', ')}.` };
+  }
   if (CARD_COMMANDS.has(command)) {
     return { ok: false, error: `"${command}" is a view change: do not run it here, write it as a card. A \`\`\`asdf10k block ({"type":"settings",...} or {"type":"window",...}) applies itself when the user's auto-accept is on (the default) and has Revert; a [label](cmd:${command}?...) link offers it as a button. See the skill asdf10k-app.` };
   }
