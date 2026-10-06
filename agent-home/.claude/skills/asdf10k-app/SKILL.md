@@ -111,7 +111,9 @@ and options, the windows and the commands. The current values of the main viz se
 {"type":"window","label":"Distributions to the whole graph","id":"popout-distribution","config":{"useGlobal":true}}
 ```
 
-  Block = you decided (applies with auto-accept); link = an offer the user clicks:
+  Link parameters are exactly the command's: `type=<window type>` (not `id`, not `window`) and the
+  option keys from the catalog (`selectedColumn` for Enrichment and Distributions, `colX` / `colY`
+  for Scatter, `column` for the meta networks). Block = you decided (applies with auto-accept); link = an offer the user clicks:
   `[Open Distributions of degree_n](cmd:window.open?type=distribution&selectedColumn=degree_n&useGlobal=false)`,
   `[Switch it to the whole graph](cmd:window.configure?id=popout-distribution&useGlobal=true)`.
 
