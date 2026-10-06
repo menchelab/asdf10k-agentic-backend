@@ -58,6 +58,9 @@ export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | 
   }
 
   lines.push(`layouts: ${snapshot.layouts.map((l) => (l === snapshot.currentLayout ? `${l} (current)` : l)).join(', ')}; nodes coloured by ${snapshot.nodeColorAttribute}, sized by ${snapshot.nodeSizeAttribute}`);
+  if (snapshot.viz && Object.keys(snapshot.viz).length > 0) {
+    lines.push(`viz settings (change with settings.set; all settings, windows and commands: skill ${'asdf10k-app-catalog'}): ${Object.entries(snapshot.viz).map(([k, v]) => `${k}=${String(v)}`).join(', ')}`);
+  }
 
   const sel = snapshot.selection;
   if (sel.count === 0) lines.push('selection: none');

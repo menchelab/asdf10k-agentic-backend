@@ -75,3 +75,20 @@ what the user clicked and the result ("saved subset hubs_2 (12 nodes)").
   graph, the statistic).
 - Prefer a button over prose like "open the Subset List and paste these names".
 - The user cannot answer questions you ask through tools - state an assumption instead.
+
+## Viz settings and the catalog
+
+The skill `asdf10k-app-catalog` (generated from the running app) lists every setting with its id
+and options, the windows and the commands. The current values of the main viz settings are in
+`<app_context>` (`viz: nodes.colorAttribute=layer_c, nodes.colorMethod=linear, ...`).
+
+- One change: `[Colour by degree](cmd:settings.set?id=nodes.colorAttribute&value=agent_degree_n)`.
+- Several at once, for the user to accept:
+
+```asdf10k
+{"type":"settings","label":"Colour by RWR probability (symlog)","changes":[{"id":"nodes.colorAttribute","value":"rwr_tca_probability_n"},{"id":"nodes.colorMethod","value":"symlog"}]}
+```
+
+Scaling methods: `linear`, `log` (positive, skewed), `symlog` (skewed, with zeros or negatives -
+RWR probabilities, scores), `quantile` (rank-spread). Pick the method with the attribute: a linear
+colour scale on RWR probabilities shows almost nothing.

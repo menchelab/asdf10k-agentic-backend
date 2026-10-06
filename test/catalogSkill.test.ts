@@ -1,0 +1,30 @@
+import { describe, expect, it } from 'vitest';
+import { renderCatalogSkill } from '../src/agent/catalogSkill.js';
+import type { AppCatalog } from '../src/protocol.js';
+
+const catalog: AppCatalog = {
+  hash: 'h1',
+  settings: [
+    { id: 'nodes.colorAttribute', label: 'Color attribute', category: 'Nodes', type: 'dropdown', options: ['original', 'layer_c', 'degree_n'] },
+    { id: 'nodes.colorMethod', label: 'Color scaling method', category: 'Nodes', type: 'dropdown', options: ['linear', 'log', 'symlog', 'quantile'] },
+    { id: 'edges.cutoff', label: 'Edge cutoff', category: 'Edges', type: 'number', min: 0, max: 1, step: 0.01 },
+    { id: 'highlight.fadeOthers', label: 'Fade others', category: 'Highlight', type: 'toggle' }
+  ],
+  actions: [{ id: 'subset.expandOneHop', label: 'Expand by one hop', category: 'Subset', effect: 'selection' }],
+  windows: [{ type: 'distribution', label: 'Distributions', purpose: 'histogram of one column' }],
+  commands: [{ id: 'settings.set', label: 'Set a setting', description: 'Sets a viz setting by id.', effect: 'view', paramsSchema: { $schema: 'x', type: 'object', properties: { id: { type: 'string' } } } }]
+};
+
+describe('renderCatalogSkill', () => {
+  it('renders front matter, settings with options and ranges, actions, windows and commands', () => {
+    const md = renderCatalogSkill(catalog);
+    expect(md.startsWith('---\nname: asdf10k-app-catalog\n')).toBe(true);
+    expect(md).toContain('| `nodes.colorMethod` | Color scaling method | Nodes | dropdown | `linear`, `log`, `symlog`, `quantile` |');
+    expect(md).toContain('| `edges.cutoff` | Edge cutoff | Edges | number | 0 .. 1, step 0.01 |');
+    expect(md).toContain('| `highlight.fadeOthers` | Fade others | Highlight | toggle | true / false |');
+    expect(md).toContain('| `subset.expandOneHop` | Expand by one hop | Subset | selection |');
+    expect(md).toContain('| `distribution` | Distributions | histogram of one column |  |');
+    expect(md).toContain('### `settings.set` - Set a setting (view)');
+    expect(md).not.toContain('$schema');
+  });
+});

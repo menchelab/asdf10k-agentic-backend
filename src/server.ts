@@ -76,7 +76,7 @@ app.post('/sessions/:id/messages', async (c) => {
   if (!(await sessions.get(id))) return c.json({ error: 'not found' }, 404);
   const parsed = PostMessageRequestSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
-  return c.json(await sessions.postMessage(id, parsed.data.text, parsed.data.snapshot), 202);
+  return c.json(await sessions.postMessage(id, parsed.data.text, parsed.data.snapshot, parsed.data.catalog), 202);
 });
 
 /** The app's graph export (JSON, usually gzipped by the browser) -> input/nodes.tsv + edges.tsv. */

@@ -132,7 +132,11 @@ This is the **fake agent** (\`AGENT_FAKE=1\`): no Claude call was made. Inline m
 | Nodes | ${ids.length}+ |
 | First id | ${ids[0] ?? '-'} |
 
-[Select the first 5 nodes](cmd:subset.set?ids=${ids.slice(0, 5).join(',')}) · [Save them as "fake five"](cmd:subset.saveToLibrary?name=fake%20five&ids=${ids.slice(0, 5).join(',')})
+[Select the first 5 nodes](cmd:subset.set?ids=${ids.slice(0, 5).join(',')}) · [Save them as "fake five"](cmd:subset.saveToLibrary?name=fake%20five&ids=${ids.slice(0, 5).join(',')}) · [Colour by degree](cmd:settings.set?id=nodes.colorAttribute&value=degree_n)
+
+\`\`\`asdf10k
+{"type":"settings","label":"Size by degree, quantile scaling","changes":[{"id":"nodes.sizeAttribute","value":"degree_n"},{"id":"nodes.sizeMethod","value":"quantile"}]}
+\`\`\`
 
 \`\`\`asdf10k
 {"type":"subset","name":"fake ten","description":"the first ten node ids of the upload","ids":${JSON.stringify(ids.slice(0, 10))}}

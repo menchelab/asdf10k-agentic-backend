@@ -13,6 +13,8 @@ export interface AgentRunner {
   push(text: string, messageId: UUID): void;
   interrupt(): Promise<void>;
   close(): void;
+  /** Re-read the skills from disk (after the generated catalog skill was rewritten). */
+  reloadSkills?(): Promise<void>;
 }
 
 export interface LiveQueryHandlers {
@@ -76,6 +78,11 @@ export class LiveQuery implements AgentRunner {
   async interrupt(): Promise<void> {
     if (this.closed) return;
     await this.q.interrupt();
+  }
+
+  async reloadSkills(): Promise<void> {
+    if (this.closed) return;
+    await this.q.reloadSkills();
   }
 
   close(): void {

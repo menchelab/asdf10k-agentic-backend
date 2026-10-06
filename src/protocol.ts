@@ -144,7 +144,9 @@ export const SessionMetaSchema = z.object({
   sdkSessionId: z.string().optional(),
   status: SessionStatusSchema,
   /** Hash of the last graph upload (phase 2). */
-  graphHash: z.string().optional()
+  graphHash: z.string().optional(),
+  /** Hash of the app catalog the generated skill was written from (phase 4). */
+  catalogHash: z.string().optional()
 });
 export type SessionMeta = z.infer<typeof SessionMetaSchema>;
 
@@ -187,9 +189,46 @@ export const AppSnapshotSchema = z.object({
     activeId: z.string().nullable()
   }),
   subsetLibrary: z.array(z.object({ name: z.string(), ids: z.array(z.string()) })),
-  openWindows: z.array(z.object({ type: z.string(), title: z.string().optional(), config: z.record(z.string(), z.unknown()) }))
+  openWindows: z.array(z.object({ type: z.string(), title: z.string().optional(), config: z.record(z.string(), z.unknown()) })),
+  /** Current values of the viz settings by ring id (`nodes.colorAttribute`, `nodes.colorMethod`, ...). */
+  viz: z.record(z.string(), z.unknown()).optional()
 });
 export type AppSnapshot = z.infer<typeof AppSnapshotSchema>;
+
+// --- app catalog: what the app can do (plan phase 4) ---------------------------------------------
+
+export const CatalogSettingSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  category: z.string(),
+  type: z.enum(['dropdown', 'toggle', 'number']),
+  options: z.array(z.string()).optional(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  step: z.number().optional(),
+  unit: z.string().optional()
+});
+export type CatalogSetting = z.infer<typeof CatalogSettingSchema>;
+export const CatalogActionSchema = z.object({ id: z.string(), label: z.string(), category: z.string(), effect: z.enum(['view', 'selection']) });
+export type CatalogAction = z.infer<typeof CatalogActionSchema>;
+export const CatalogWindowSchema = z.object({
+  type: z.string(),
+  label: z.string(),
+  purpose: z.string().optional(),
+  options: z.array(z.object({ key: z.string(), kind: z.string(), values: z.array(z.string()).optional(), description: z.string().optional() })).optional()
+});
+export type CatalogWindow = z.infer<typeof CatalogWindowSchema>;
+export const CatalogCommandSchema = z.object({ id: z.string(), label: z.string(), description: z.string(), effect: z.string(), paramsSchema: z.record(z.string(), z.unknown()) });
+export type CatalogCommand = z.infer<typeof CatalogCommandSchema>;
+export const AppCatalogSchema = z.object({
+  /** Hash of the structure (ids, options), not of current values. */
+  hash: z.string(),
+  settings: z.array(CatalogSettingSchema),
+  actions: z.array(CatalogActionSchema),
+  windows: z.array(CatalogWindowSchema),
+  commands: z.array(CatalogCommandSchema)
+});
+export type AppCatalog = z.infer<typeof AppCatalogSchema>;
 
 export const PutGraphRequestSchema = z.object({ graphHash: z.string().min(1), nodesTsv: z.string(), edgesTsv: z.string() });
 
@@ -197,8 +236,8 @@ export const CreateSessionRequestSchema = z.object({ dataset: z.string().min(1),
 export const PostMessageRequestSchema = z.object({
   text: z.string().min(1),
   snapshot: AppSnapshotSchema.optional(),
-  /** Window descriptions + command list (phase 4). */
-  catalog: z.unknown().optional()
+  /** Sent when its hash differs from the session's catalogHash; rendered into a skill. */
+  catalog: AppCatalogSchema.optional()
 });
 /** POST /sessions/:id/feedback: one line the agent should know ("saved subset hubs_2 (12 nodes)"), optionally tied to a proposal card. */
 export const FeedbackRequestSchema = z.object({ text: z.string().min(1), proposalId: z.string().optional(), outcome: z.string().optional() });

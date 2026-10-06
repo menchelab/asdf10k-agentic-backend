@@ -16,8 +16,9 @@ import { LiveQuery, type AgentRunner } from '../agent/liveQuery.js';
 import { buildAgentOptions } from '../agent/agentOptions.js';
 import { composePrompt, renderAppContext, renderUserActions, writeAppInputs } from '../agent/appContext.js';
 import { createAppToolsServer } from '../agent/appTools.js';
+import { writeCatalogSkill } from '../agent/catalogSkill.js';
 import { FakeAgent } from '../fake/FakeAgent.js';
-import type { AppSnapshot } from '../protocol.js';
+import type { AppCatalog, AppSnapshot } from '../protocol.js';
 
 interface LiveSession {
   runner: AgentRunner;
@@ -142,10 +143,16 @@ export class SessionManager {
    * Accepts a user message. With a snapshot, the input files are refreshed and the agent gets the
    * `<app_context>` block in front of the text; the event log keeps the text as typed.
    */
-  async postMessage(id: string, text: string, snapshot?: AppSnapshot): Promise<{ messageId: string }> {
+  async postMessage(id: string, text: string, snapshot?: AppSnapshot, catalog?: AppCatalog): Promise<{ messageId: string }> {
     const meta = await this.get(id);
     if (!meta) throw new NotFoundError(id);
     const session = await this.ensureLive(id, meta);
+    // The app's catalog (settings, windows, commands) -> generated skill, rewritten when it changed.
+    if (catalog && catalog.hash !== meta.catalogHash) {
+      await writeCatalogSkill(this.workspaceDir(id), catalog);
+      await this.updateMeta(id, (m) => ({ ...m, catalogHash: catalog.hash, updatedAt: Date.now() }));
+      await session.runner.reloadSkills?.().catch((e: unknown) => console.warn('[agent] reloadSkills failed', e));
+    }
     let prompt = text;
     const userActions = this.feedback.get(id) ?? [];
     this.feedback.delete(id);
