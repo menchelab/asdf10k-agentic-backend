@@ -116,7 +116,7 @@ describe('EventNormalizer on the interrupt fixture', () => {
 
 describe('toolLabel', () => {
   it('gives readable labels', () => {
-    expect(toolLabel('Bash', { command: 'ls', description: 'List files' })).toBe('Bash: List files');
+    expect(toolLabel('Bash', { command: 'ls', description: 'List files' })).toBe('List files');
     expect(toolLabel('Read', { file_path: '/a/b/nodes.tsv' })).toBe('Read nodes.tsv');
     expect(toolLabel('mcp__asdf10k__show_image', {})).toBe('show_image');
     expect(toolLabel('WebSearch', { query: 'x' })).toBe('Web search: x');

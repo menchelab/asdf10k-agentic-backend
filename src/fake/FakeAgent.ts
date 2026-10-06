@@ -115,7 +115,7 @@ flowchart LR
       e({ type: 'tool_end', runId, toolUseId: `${runId}-t1`, ok: true, summary: 'Task #1 created successfully', durationMs: 110 });
       e({ type: 'todos', runId, items: todos('in_progress', 'pending') });
     });
-    at(300, () => e({ type: 'tool_start', runId, toolUseId: `${runId}-t2`, name: 'Bash', label: 'Bash: Count the rows of input/nodes.tsv', input: { command: 'wc -l input/nodes.tsv', description: 'Count the rows of input/nodes.tsv' }, parentToolUseId: null }));
+    at(300, () => e({ type: 'tool_start', runId, toolUseId: `${runId}-t2`, name: 'Bash', label: 'Count the rows of input/nodes.tsv', input: { command: 'wc -l input/nodes.tsv', description: 'Count the rows of input/nodes.tsv' }, parentToolUseId: null }));
     at(1200, () => e({ type: 'tool_end', runId, toolUseId: `${runId}-t2`, ok: true, summary: '264 input/nodes.tsv', durationMs: 1180 }));
     at(100, () => e({ type: 'todos', runId, items: todos('completed', 'in_progress') }));
     at(200, () => e({ type: 'status', state: 'requesting' }, false));

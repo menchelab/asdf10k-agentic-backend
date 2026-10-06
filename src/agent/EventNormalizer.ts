@@ -304,7 +304,7 @@ export function toolLabel(name: string, input: Rec): string {
   const base = (p: unknown): string => (typeof p === 'string' ? (p.split('/').pop() ?? p) : '');
   switch (name) {
     case 'Bash':
-      return `Bash: ${s(input.description) || s(input.command)}`;
+      return s(input.description) || s(input.command) || 'Bash';
     case 'Read':
       return `Read ${base(input.file_path)}`;
     case 'Write':
