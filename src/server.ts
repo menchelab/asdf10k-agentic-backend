@@ -8,11 +8,21 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { streamSSE } from 'hono/streaming';
+import { existsSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
-import { extname, resolve, sep } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
+import { gunzipSync } from 'node:zlib';
 import { config } from './config.js';
 import { SessionManager } from './sessions/SessionManager.js';
-import { CreateSessionRequestSchema, PostMessageRequestSchema, PROTOCOL_VERSION, type AgentEvent, type HealthResponse, type ReadyPayload } from './protocol.js';
+import {
+  CreateSessionRequestSchema,
+  PostMessageRequestSchema,
+  PROTOCOL_VERSION,
+  PutGraphRequestSchema,
+  type AgentEvent,
+  type HealthResponse,
+  type ReadyPayload
+} from './protocol.js';
 
 const pkg = JSON.parse(await readFile(resolve(config.root, 'package.json'), 'utf8')) as { version: string };
 const sdkPkg = JSON.parse(await readFile(resolve(config.root, 'node_modules/@anthropic-ai/claude-agent-sdk/package.json'), 'utf8')) as { version: string };
@@ -30,7 +40,15 @@ app.use('*', async (c, next) => {
 });
 
 app.get('/health', (c) => {
-  const body: HealthResponse = { ok: true, version: pkg.version, protocol: PROTOCOL_VERSION, sdkVersion: sdkPkg.version, fake: config.fake, liveSessions: sessions.liveCount };
+  const body: HealthResponse = {
+    ok: true,
+    version: pkg.version,
+    protocol: PROTOCOL_VERSION,
+    sdkVersion: sdkPkg.version,
+    fake: config.fake,
+    python: existsSync(join(config.pythonBin, 'python')),
+    liveSessions: sessions.liveCount
+  };
   return c.json(body);
 });
 
@@ -57,7 +75,24 @@ app.post('/sessions/:id/messages', async (c) => {
   if (!(await sessions.get(id))) return c.json({ error: 'not found' }, 404);
   const parsed = PostMessageRequestSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
-  return c.json(await sessions.postMessage(id, parsed.data.text), 202);
+  return c.json(await sessions.postMessage(id, parsed.data.text, parsed.data.snapshot), 202);
+});
+
+/** The app's graph export (JSON, usually gzipped by the browser) -> input/nodes.tsv + edges.tsv. */
+app.put('/sessions/:id/graph', async (c) => {
+  const id = c.req.param('id');
+  if (!(await sessions.get(id))) return c.json({ error: 'not found' }, 404);
+  let body: unknown;
+  try {
+    const raw = Buffer.from(await c.req.arrayBuffer());
+    const text = (c.req.header('content-encoding') ?? '').includes('gzip') ? gunzipSync(raw).toString('utf8') : raw.toString('utf8');
+    body = JSON.parse(text);
+  } catch (e) {
+    return c.json({ error: `unreadable body: ${e instanceof Error ? e.message : String(e)}` }, 400);
+  }
+  const parsed = PutGraphRequestSchema.safeParse(body);
+  if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
+  return c.json(await sessions.setGraph(id, parsed.data));
 });
 
 app.post('/sessions/:id/interrupt', async (c) => {

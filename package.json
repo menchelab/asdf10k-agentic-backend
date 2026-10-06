@@ -9,7 +9,8 @@
     "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
     "spike:phase0": "tsx spike/phase0.ts",
-    "spike:interrupt": "tsx spike/interrupt.ts"
+    "spike:interrupt": "tsx spike/interrupt.ts",
+    "setup:python": "cd python && uv sync"
   },
   "keywords": [],
   "author": "",

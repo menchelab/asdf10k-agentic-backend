@@ -119,11 +119,55 @@ export const SessionMetaSchema = z.object({
 });
 export type SessionMeta = z.infer<typeof SessionMetaSchema>;
 
+// --- app snapshot: what the app sends with every message (plan section 7c) ---------------------
+
+export const ColumnInfoSchema = z.object({
+  name: z.string(),
+  /** The app's ColumnKind from the name suffix ('numeric', 'categorical', 'array', 'kv', ...). */
+  kind: z.string(),
+  /** Nodes / edges with a value. */
+  nonEmpty: z.number(),
+  /** 'file' = in the TSV the app loaded; 'app' = added or changed in the app (any tool). */
+  origin: z.enum(['file', 'app']),
+  source: z.string().optional(),
+  description: z.string().optional(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  distinct: z.number().optional(),
+  /** Most frequent values with counts (categorical / array columns). */
+  topValues: z.array(z.tuple([z.string(), z.number()])).optional()
+});
+export type ColumnInfo = z.infer<typeof ColumnInfoSchema>;
+
+export const AppSnapshotSchema = z.object({
+  dataset: z.string(),
+  /** Hash of the graph export (nodes + edges TSV); the backend has the files when meta.graphHash matches. */
+  graphHash: z.string(),
+  nodeCount: z.number(),
+  edgeCount: z.number(),
+  nodeColumns: z.array(ColumnInfoSchema),
+  edgeColumns: z.array(ColumnInfoSchema),
+  layouts: z.array(z.string()),
+  currentLayout: z.string(),
+  nodeColorAttribute: z.string(),
+  nodeSizeAttribute: z.string(),
+  selection: z.object({
+    count: z.number(),
+    /** TSV ids (`_id`), all of them. */
+    ids: z.array(z.string()),
+    activeId: z.string().nullable()
+  }),
+  subsetLibrary: z.array(z.object({ name: z.string(), ids: z.array(z.string()) })),
+  openWindows: z.array(z.object({ type: z.string(), title: z.string().optional(), config: z.record(z.string(), z.unknown()) }))
+});
+export type AppSnapshot = z.infer<typeof AppSnapshotSchema>;
+
+export const PutGraphRequestSchema = z.object({ graphHash: z.string().min(1), nodesTsv: z.string(), edgesTsv: z.string() });
+
 export const CreateSessionRequestSchema = z.object({ dataset: z.string().min(1), title: z.string().optional() });
 export const PostMessageRequestSchema = z.object({
   text: z.string().min(1),
-  /** App snapshot (phase 2). */
-  snapshot: z.unknown().optional(),
+  snapshot: AppSnapshotSchema.optional(),
   /** Window descriptions + command list (phase 4). */
   catalog: z.unknown().optional()
 });
@@ -135,6 +179,8 @@ export interface HealthResponse {
   protocol: number;
   sdkVersion: string;
   fake: boolean;
+  /** The Python environment (python/.venv) exists. */
+  python: boolean;
   liveSessions: number;
 }
 

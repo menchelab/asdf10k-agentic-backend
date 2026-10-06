@@ -1,0 +1,13 @@
+[project]
+name = "asdf10k-agent-python"
+version = "0.1.0"
+description = "Python environment the asdf10k agent uses (pandas etc.); `uv sync` here creates .venv, which the backend puts on the agent's PATH."
+requires-python = ">=3.11"
+dependencies = [
+  "pandas>=2.2",
+  "numpy>=1.26",
+  "scipy>=1.13",
+  "matplotlib>=3.9",
+  "networkx>=3.3",
+  "pyarrow>=16",
+]

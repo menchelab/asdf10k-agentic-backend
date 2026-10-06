@@ -9,8 +9,8 @@ The plan, architecture, protocol and phase status live in the app repo:
 
 ## Status
 
-Phase 0 (spike) done on 2026-10-06; findings in the plan, section 15. Phase 1 (chat with progress)
-not started.
+Phase 0 (spike) and phase 1 (chat with progress) done on 2026-10-06; phase 2 (app awareness:
+graph upload, app context, skills, Python) built the same day. Details and findings: the plan.
 
 ## Requirements
 
@@ -18,16 +18,28 @@ not started.
 - A `claude` CLI login on this machine (the SDK bundles its own Claude Code binary and uses the
   login from the Keychain; `apiKeySource: 'none'` in the init message means the claude.ai login is
   in use). The backend must run as a normal user: `bypassPermissions` refuses to start as root.
-- `uv` for the Python environment the agent uses (`python/`, phase 2).
+- `uv` for the Python environment the agent uses: `npm run setup:python` (= `uv sync` in
+  `python/`, creates `python/.venv` with pandas, numpy, scipy, matplotlib, networkx, pyarrow). The
+  backend puts `python/.venv/bin` first on the agent's PATH; `/health` reports `python: true`.
 
 ## Run
 
 ```bash
 cp .env.example .env        # optional, defaults work
-npm run dev                 # tsx watch src/server.ts (phase 1)
+npm run setup:python        # once
+npm run dev                 # tsx watch src/server.ts
 npm run typecheck
 npm test
 ```
+
+## What a session gets
+
+`<SESSIONS_DIR>/<id>/workspace/` is the agent's cwd. `input/` holds what the app sent: `nodes.tsv`
+and `edges.tsv` (the app's whole graph with every column, re-uploaded when its hash changes),
+`selection.tsv`, `subset_library.tsv`, `app_context.json`. Every user message is prefixed with an
+`<app_context>` block rendered from the snapshot (`src/agent/appContext.ts`). The skills in
+`agent-home/.claude/skills/` (`asdf10k-columns`, `asdf10k-app`) are loaded into every session via
+`additionalDirectories`; the system prompt addition is `src/agent/systemPrompt.ts`.
 
 Sessions (agent workspaces, event logs, proposals) live outside this repo, by default in
 `../asdf10k-agentic-sessions/` (`SESSIONS_DIR`): Claude Code loads `.claude/` and `CLAUDE.md` from

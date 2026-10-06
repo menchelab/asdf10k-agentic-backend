@@ -14,7 +14,9 @@ import { SessionMetaSchema, type AgentEvent, type AgentEventInput, type SessionM
 import { EventNormalizer } from '../agent/EventNormalizer.js';
 import { LiveQuery, type AgentRunner } from '../agent/liveQuery.js';
 import { buildAgentOptions } from '../agent/agentOptions.js';
+import { composePrompt, renderAppContext, writeAppInputs } from '../agent/appContext.js';
 import { FakeAgent } from '../fake/FakeAgent.js';
+import type { AppSnapshot } from '../protocol.js';
 
 interface LiveSession {
   runner: AgentRunner;
@@ -31,6 +33,14 @@ export class NotFoundError extends Error {
 }
 
 const SAFE_ID = /^[A-Za-z0-9_-]+$/;
+
+/** Data rows of a TSV string (header excluded). */
+function countRows(tsv: string): number {
+  let n = 0;
+  for (let i = 0; i < tsv.length; i++) if (tsv.charCodeAt(i) === 10) n++;
+  if (tsv.length > 0 && !tsv.endsWith('\n')) n++;
+  return Math.max(0, n - 1);
+}
 
 export class SessionManager {
   private readonly live = new Map<string, LiveSession>();
@@ -113,15 +123,43 @@ export class SessionManager {
     return log;
   }
 
-  async postMessage(id: string, text: string): Promise<{ messageId: string }> {
+  /** The app's graph export -> workspace/input/nodes.tsv + edges.tsv; meta.graphHash tells the app it is there. */
+  async setGraph(id: string, graph: { graphHash: string; nodesTsv: string; edgesTsv: string }): Promise<{ graphHash: string; nodes: number; edges: number }> {
+    const meta = await this.get(id);
+    if (!meta) throw new NotFoundError(id);
+    const input = join(this.workspaceDir(id), 'input');
+    await mkdir(input, { recursive: true });
+    await writeFile(join(input, 'nodes.tsv'), graph.nodesTsv);
+    await writeFile(join(input, 'edges.tsv'), graph.edgesTsv);
+    await this.updateMeta(id, (m) => ({ ...m, graphHash: graph.graphHash, updatedAt: Date.now() }));
+    return { graphHash: graph.graphHash, nodes: countRows(graph.nodesTsv), edges: countRows(graph.edgesTsv) };
+  }
+
+  /**
+   * Accepts a user message. With a snapshot, the input files are refreshed and the agent gets the
+   * `<app_context>` block in front of the text; the event log keeps the text as typed.
+   */
+  async postMessage(id: string, text: string, snapshot?: AppSnapshot): Promise<{ messageId: string }> {
     const meta = await this.get(id);
     if (!meta) throw new NotFoundError(id);
     const session = await this.ensureLive(id, meta);
+    let prompt = text;
+    if (snapshot) {
+      const previous = await writeAppInputs(this.workspaceDir(id), snapshot);
+      let context = renderAppContext(snapshot, previous);
+      if (snapshot.graphHash !== meta.graphHash) {
+        context = context.replace(
+          '</app_context>',
+          `note: the app's graph (hash ${snapshot.graphHash}) is not what was uploaded (${meta.graphHash ?? 'nothing uploaded'}); input/nodes.tsv may be outdated\n</app_context>`
+        );
+      }
+      prompt = composePrompt(text, context);
+    }
     const messageId = randomUUID();
     session.log.append({ type: 'user_message', messageId, text });
     await this.updateMeta(id, (m) => ({ ...m, updatedAt: Date.now() }));
     session.normalizer?.noteUserMessage(messageId);
-    session.runner.push(text, messageId);
+    session.runner.push(prompt, messageId);
     this.touch(id, session);
     return { messageId };
   }

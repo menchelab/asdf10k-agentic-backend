@@ -51,7 +51,8 @@ export class FakeAgent implements AgentRunner {
     at(100, () => e({ type: 'todos', runId, items: todos('completed', 'in_progress') }));
     at(200, () => e({ type: 'status', state: 'requesting' }, false));
 
-    const answer = `You asked: *${text.replace(/[*_`]/g, '').slice(0, 200)}*
+    const asked = text.replace(/^<app_context>[\s\S]*?<\/app_context>\s*/, '');
+    const answer = `You asked: *${asked.replace(/[*_`]/g, '').slice(0, 200)}*
 
 This is the **fake agent** (\`AGENT_FAKE=1\`): no Claude call was made. A real run produces the same kinds of events - text streamed as it is written, tool steps, a to-do list and a footer.
 
