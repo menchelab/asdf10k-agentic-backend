@@ -6,7 +6,8 @@ MCP tools that hand results back into the app, speech to text for push-to-talk. 
 Mental model of the code: `docs/architecture.md`. Index of all docs: `docs/README.md` - look there
 first. The plan, protocol decisions and phase history live in the app repo:
 `../asdf10k/docs/agent-window-plan.md` (sections 5 API, 6 protocol, 15 SDK findings, 16 markdown
-actions); the window side is `../asdf10k/docs/windows/agent.md`.
+actions); the window side is `../asdf10k/docs/windows/agent.md`. Continuing the work (phase 5: sessions
+overview, jobs, profiles, subagents): start with `../asdf10k/docs/agent-handover.md`.
 
 ## Commands
 
