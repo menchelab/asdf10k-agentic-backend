@@ -4,8 +4,9 @@ Backend for the Agent window of [asdf10k](../asdf10k): a Claude agent (Claude Ag
 Code as a library) that analyses the graph the app has loaded, streams its progress to the window
 and hands results back (images, tables, node columns, subsets, window suggestions).
 
-The plan, architecture, protocol and phase status live in the app repo:
-`../asdf10k/docs/agent-window-plan.md`. Keep that file updated with every change here.
+For agents (and anyone changing code): `CLAUDE.md` (rules, commands, pitfalls) and `docs/`
+(`architecture.md`, `sdk-notes.md`, `testing.md`). The plan, protocol decisions and phase status
+live in the app repo: `../asdf10k/docs/agent-window-plan.md`. Keep both updated with every change.
 
 ## Status
 
