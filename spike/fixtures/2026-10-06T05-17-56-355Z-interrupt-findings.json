@@ -1,0 +1,37 @@
+{
+  "A": {
+    "bashToolUseId": "toolu_01F7yTtAfj6gMWHGyrwdji7K",
+    "interruptReturnMs": 9,
+    "interruptResponse": {
+      "still_queued": []
+    },
+    "resultAfterInterrupt": {
+      "subtype": "error_during_execution",
+      "is_error": true,
+      "stop_reason": "tool_use",
+      "msAfterInterrupt": 27
+    },
+    "toolResultForBash": {
+      "id": "toolu_01F7yTtAfj6gMWHGyrwdji7K",
+      "is_error": true,
+      "text": "\"The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). STOP wh",
+      "structured": "User rejected tool use",
+      "at": 5933
+    }
+  },
+  "B": {
+    "subtype": "success",
+    "result": "OK",
+    "msFromPushToResult": 723
+  },
+  "CD": {
+    "C": {
+      "subtype": "success",
+      "queued_turn_count": 0,
+      "result": "It printed `c`.\n\n4",
+      "ms": 69704
+    },
+    "D": "timeout: D",
+    "resultsTotal": 3
+  }
+}
