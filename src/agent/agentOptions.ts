@@ -11,6 +11,9 @@ export function buildAgentOptions(workspace: string, resume: string | undefined,
   return {
     cwd: workspace,
     ...(resume ? { resume } : {}),
+    // Faster than the login's default (Opus at high effort); AGENT_MODEL / AGENT_EFFORT in .env, 'opus' + 'high' for research.
+    model: config.agentModel,
+    effort: config.agentEffort,
     mcpServers,
     // The default loads the backend user's ~/.claude settings and skills; 'project' = the
     // workspace and additionalDirectories only.

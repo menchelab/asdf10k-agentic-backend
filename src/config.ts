@@ -23,6 +23,10 @@ export const config = {
   /** Static skills for every session (`agent-home/.claude/skills`), loaded via additionalDirectories. */
   agentHome: resolve(root, 'agent-home'),
   pythonBin: resolve(root, 'python/.venv/bin'),
+  /** Model and reasoning effort of the session agent (AGENT_MODEL, AGENT_EFFORT) and of the "What's up?" side query (ASIDE_MODEL). Sonnet 5.5 at medium effort answers most app questions in a third of Opus' time. */
+  agentModel: process.env.AGENT_MODEL?.trim() || 'claude-sonnet-5-5',
+  agentEffort: (process.env.AGENT_EFFORT?.trim() || 'medium') as 'low' | 'medium' | 'high' | 'xhigh' | 'max',
+  asideModel: process.env.ASIDE_MODEL?.trim() || 'claude-haiku-4-5-20251001',
   /** A run without any SDK message for this long gets `status: waiting` events (every check), and is stopped after stallAbortMs. */
   stallWarnMs: Math.max(10, Number(process.env.RUN_STALL_WARN_S ?? 90) || 90) * 1000,
   stallAbortMs: Math.max(1, Number(process.env.RUN_STALL_ABORT_MIN ?? 10) || 10) * 60_000,

@@ -8,6 +8,7 @@
 
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { buildAgentOptions } from './agentOptions.js';
+import { config } from '../config.js';
 
 export const DEFAULT_ASIDE_QUESTION = "What's up? In two or three short sentences: what have you done so far in this run, what are you doing right now, and what is left?";
 
@@ -26,6 +27,8 @@ export async function runAside(workspace: string, sdkSessionId: string, question
         ...base,
         forkSession: true,
         maxTurns: 1,
+        model: config.asideModel, // a status summary: the small fast model is enough
+        effort: 'low',
         tools: [],
         includePartialMessages: false,
         abortController: abort,

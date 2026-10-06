@@ -79,6 +79,16 @@ normaliser.
 - Skills: `asdf10k-columns`, `asdf10k-app` (actions syntax), `asdf10k-reports` (front matter,
   roles, template).
 
+## Model and speed
+
+`AGENT_MODEL` (default `claude-sonnet-5-5`) and `AGENT_EFFORT` (default `medium`) set the session
+agent's model and reasoning effort (`src/agent/agentOptions.ts`); the "What's up?" side query uses
+`ASIDE_MODEL` (default Haiku 4.5) at low effort. The prototype's 45 runs on the login's default
+(Opus 5.5, high effort) had a median of 17.9 s, 16 s of it model time over 3 turns; Sonnet at
+medium is the fast default for app work, Opus at high the choice for research sessions (phase 5
+profiles will set this per profile). Changing the model needs a backend restart (the live query is
+created with it; a resumed session keeps its history).
+
 ## Stalls, restarts and "What's up?"
 
 - A run whose model request never answers would spin forever. The stall watchdog
