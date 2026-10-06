@@ -112,7 +112,7 @@ export const AgentEventSchema = z.discriminatedUnion('type', [
   /** publish_report: the report itself (the app keeps it in its store). */
   z.object({ ...base, type: z.literal('report'), ...inRun, report: ReportSchema }),
   /** What the user did with a card / button (posted by the app; prefixed to the agent's next message). */
-  z.object({ ...base, type: z.literal('feedback'), text: z.string(), proposalId: z.string().optional(), outcome: z.string().optional() }),
+  z.object({ ...base, type: z.literal('feedback'), text: z.string(), proposalId: z.string().optional(), outcome: z.string().optional(), data: z.record(z.string(), z.unknown()).optional() }),
   /** run_app_command: the app should run this command and POST the result to /app-results/:requestId. Not persisted. */
   z.object({ ...base, type: z.literal('app_request'), requestId: z.string(), command: z.string(), params: z.record(z.string(), z.unknown()), label: z.string() }),
   z.object({
@@ -191,7 +191,8 @@ export const AppSnapshotSchema = z.object({
     activeId: z.string().nullable()
   }),
   subsetLibrary: z.array(z.object({ name: z.string(), ids: z.array(z.string()) })),
-  openWindows: z.array(z.object({ type: z.string(), title: z.string().optional(), config: z.record(z.string(), z.unknown()) })),
+  /** `id` = the window's storage key (e.g. distribution-2): what window.configure / window.close address. */
+  openWindows: z.array(z.object({ type: z.string(), id: z.string().optional(), title: z.string().optional(), config: z.record(z.string(), z.unknown()) })),
   /** Current values of the viz settings by ring id (`nodes.colorAttribute`, `nodes.colorMethod`, ...). */
   viz: z.record(z.string(), z.unknown()).optional()
 });
@@ -258,7 +259,13 @@ export const AppResultRequestSchema = z.object({
 export type AppResultRequest = z.infer<typeof AppResultRequestSchema>;
 
 /** POST /sessions/:id/feedback: one line the agent should know ("saved subset hubs_2 (12 nodes)"), optionally tied to a proposal card. */
-export const FeedbackRequestSchema = z.object({ text: z.string().min(1), proposalId: z.string().optional(), outcome: z.string().optional() });
+export const FeedbackRequestSchema = z.object({
+  text: z.string().min(1),
+  proposalId: z.string().optional(),
+  outcome: z.string().optional(),
+  /** Card state to restore on replay (change cards: the pending inverse changes). */
+  data: z.record(z.string(), z.unknown()).optional()
+});
 
 export interface HealthResponse {
   ok: boolean;

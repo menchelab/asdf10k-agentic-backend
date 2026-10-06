@@ -83,14 +83,33 @@ and options, the windows and the commands. The current values of the main viz se
 `<app_context>` (`viz: nodes.colorAttribute=layer_c, nodes.colorMethod=linear, ...`).
 
 - One change: `[Colour by degree](cmd:settings.set?id=nodes.colorAttribute&value=agent_degree_n)`.
-- Several at once, as a settings card (the user clicks Accept; with the window's "Auto-accept viz
-  settings" on - the default - the card applies itself when it arrives and the feedback line says
-  "Auto-accepted settings card"; the card keeps a Revert button, and a "Reverted settings card"
-  feedback line means the user did not like the change):
+- A **settings card** - the way to change viz settings (there is no tool call for it). With the
+  window's "Auto-accept viz changes" on (the default) the card applies itself when it arrives and
+  the feedback line says `Auto-accepted card "..."`; otherwise the user clicks Accept. Every card
+  keeps a Revert button; a `Reverted card` feedback line means the user did not like the change.
+  Never add your own revert / undo links:
 
 ```asdf10k
 {"type":"settings","label":"Colour by RWR probability (symlog)","changes":[{"id":"nodes.colorAttribute","value":"rwr_tca_probability_n"},{"id":"nodes.colorMethod","value":"symlog"}]}
 ```
+
+- A **window card** opens a window with options, or changes an open one (`id` from the app
+  context's `open windows: type#id (...)` line - e.g. switch its G / S toggle with `useGlobal`).
+  For a window you open in the same answer you do not know the id yet: a link with `type` instead
+  of `id` targets the most recently opened window of that type -
+  `[Switch it to the whole graph](cmd:window.configure?type=distribution&useGlobal=true)`:
+
+```asdf10k
+{"type":"window","label":"Distributions of degree_n for the selection","window":"distribution","config":{"selectedColumn":"degree_n","useGlobal":false}}
+```
+
+```asdf10k
+{"type":"window","label":"Distributions to the whole graph","id":"popout-distribution","config":{"useGlobal":true}}
+```
+
+  Block = you decided (applies with auto-accept); link = an offer the user clicks:
+  `[Open Distributions of degree_n](cmd:window.open?type=distribution&selectedColumn=degree_n&useGlobal=false)`,
+  `[Switch it to the whole graph](cmd:window.configure?id=popout-distribution&useGlobal=true)`.
 
 Scaling methods: `linear`, `log` (positive, skewed), `symlog` (skewed, with zeros or negatives -
 RWR probabilities, scores), `quantile` (rank-spread). Pick the method with the attribute: a linear
@@ -105,8 +124,9 @@ opacity to 0.1").
 ## Running the app's tools yourself: `run_app_command`
 
 `run_app_command({ command, params })` runs a command in the app and returns its result. Allowed:
-`compute` commands (`rwr.run`, `cluster.run`) and `view` commands (`settings.set`, `window.open`,
-`menu.run`). Refused: anything that changes the selection or the user's data (`subset.*`,
+`compute` commands (`rwr.run`, `cluster.run`) and `menu.run` (fly to subset, reset view). Refused:
+view changes (`settings.set`, `window.open`, `window.configure`, `window.close` - write them as
+cards, see above) and anything that changes the selection or the user's data (`subset.*`,
 `columns.addFromTsv`) - offer those as buttons.
 
 - `rwr.run`: `{ seeds?: [ids] (default: the selection), name?, alpha? (0.7), beta? (0.3), edgeMetrics? (default flow), topN? }`.
@@ -116,13 +136,12 @@ opacity to 0.1").
   on `edges.widthAttribute` / `edges.colorAttribute`.
 - `cluster.run`: `{ layout? ('default' = current positions), method? (louvain | leiden-simple), k? (15), resolution? (1), minClusterSize? (5), columnName? }`
   -> a `cluster_<n>_c` column; colour by it with `settings.set`.
-- `window.open`: `{ type, config? }` or the options flat: `window.open?type=distribution&selectedColumn=degree_n&useGlobal=false`.
-  The catalog skill lists every window with its purpose, its scope and its options with the
-  allowed values right now. Scope: most analysis windows have a **G / S toggle** - `global` = all
-  nodes, `subset` = the current selection (follows the selection unless `frozen`); `useGlobal`
-  true / false picks it (defaults differ per window, see the catalog). "For my selection" means
-  `useGlobal=false`; `[subset]` windows (tables, Enrichment, Subset Network) always show the
-  selection. Column options only accept columns of the listed kinds; a wrong value is an error. Prefer a button
-  (`[Open Distributions of degree_n](cmd:window.open?type=distribution&selectedColumn=degree_n&useGlobal=false)`)
-  when the window is your suggestion; open it yourself when the user asked for it.
+- Windows (cards or links, see above): the catalog skill lists every window with its purpose, its
+  scope and its options with the allowed values right now. Scope: most analysis windows have a
+  **G / S toggle** - `global` = all nodes, `subset` = the current selection (follows the selection
+  unless `frozen`); `useGlobal` true / false picks it (defaults differ per window, see the
+  catalog). "For my selection" means `useGlobal=false`; `[subset]` windows (tables, Enrichment,
+  Subset Network) always show the selection. Column options only accept columns of the listed
+  kinds; a wrong value is an error. A window card when the user asked for the window or you need it
+  shown; a link when it is a suggestion.
 - The app must be open (an Agent window attached to this session); otherwise the call times out.

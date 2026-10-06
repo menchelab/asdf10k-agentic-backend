@@ -134,6 +134,12 @@ This is the **fake agent** (\`AGENT_FAKE=1\`): no Claude call was made. Inline m
 
 [Select the first 5 nodes](cmd:subset.set?ids=${ids.slice(0, 5).join(',')}) · [Save them as "fake five"](cmd:subset.saveToLibrary?name=fake%20five&ids=${ids.slice(0, 5).join(',')}) · [Colour by degree](cmd:settings.set?id=nodes.colorAttribute&value=degree_n)
 
+A window card (applies itself with auto-accept, has Revert):
+
+\`\`\`asdf10k
+{"type":"window","label":"Distributions of degree_n for the selection","window":"distribution","config":{"selectedColumn":"degree_n","useGlobal":false}}
+\`\`\`
+
 \`\`\`asdf10k
 {"type":"settings","label":"Size by degree, quantile scaling","changes":[{"id":"nodes.sizeAttribute","value":"degree_n"},{"id":"nodes.sizeMethod","value":"quantile"}]}
 \`\`\`

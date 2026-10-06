@@ -86,8 +86,12 @@ normaliser.
   `<workspace>/.claude/skills/asdf10k-app-catalog/SKILL.md` and the session reloads its skills; the
   catalog is kept in the session meta for the policy check.
 - `run_app_command` (`src/agent/appTools.ts`): the agent runs an app command. `src/agent/appCommandPolicy.ts`
-  allows effects `view` (`settings.set`, `window.open`, `menu.run`) and `compute` (`rwr.run`,
-  `cluster.run`); `selection` and `data` commands are refused with a hint to offer a button. The
+  allows `compute` (`rwr.run`, `cluster.run`) and `menu.run`; the view changes `settings.set`,
+  `window.open`, `window.configure`, `window.close` are refused with a hint to write a card (the
+  app renders `asdf10k` blocks and `cmd:` links to them as change cards with Revert; blocks apply
+  themselves when the user's auto-accept is on); `selection` and `data` commands are refused with
+  a hint to offer a button. Feedback from cards carries `proposalId` / `outcome` / `data` and is
+  persisted, so the app restores card states on replay. The
   session emits a non-persisted `app_request` event, the Agent window runs the command, re-uploads
   the graph when it changed and answers at `POST /sessions/:id/app-results/:requestId`; the tool
   result lists the command's result, new columns and the viz settings now. 120 s timeout, an error

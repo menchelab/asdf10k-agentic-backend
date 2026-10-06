@@ -28,6 +28,7 @@ describe('renderCatalogSkill', () => {
     expect(md).toContain('**Read-only settings**');
     expect(md).toContain('| `subset.expandOneHop` | Expand by one hop | Subset | selection | adds every neighbour |');
     expect(md).toContain('G / S toggle');
+    expect(md).toContain('{"type":"window","label":"Distributions of degree_n for the selection"');
     expect(md).toContain('| `distribution` | Distributions | histogram of one column [global-or-subset] | `selectedColumn` (column: degree_n / layer_c); `useGlobal` (boolean) - true = all nodes (default), false = the current selection |');
     expect(md).toContain('| `kv-table` | KV table | key:value columns [subset] |  |');
     expect(md).toContain('### `settings.set` - Set a setting (view)');

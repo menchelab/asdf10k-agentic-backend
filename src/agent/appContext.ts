@@ -75,7 +75,7 @@ export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | 
   } else lines.push('subset library: empty');
 
   if (snapshot.openWindows.length > 0) {
-    lines.push(`open windows: ${snapshot.openWindows.map((w) => `${w.type}${describeConfig(w.config)}`).join('; ')}`);
+    lines.push(`open windows: ${snapshot.openWindows.map((w) => `${w.type}${w.id ? `#${w.id}` : ''}${describeConfig(w.config)}`).join('; ')}`);
   } else lines.push('open windows: none');
 
   const changes = describeChanges(snapshot, previous);

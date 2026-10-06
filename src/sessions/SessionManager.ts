@@ -231,11 +231,11 @@ export class SessionManager {
   }
 
   /** The app reports what the user did with a card / button; logged, and told to the agent with the next message. */
-  async postFeedback(id: string, req: { text: string; proposalId?: string | undefined; outcome?: string | undefined }): Promise<void> {
+  async postFeedback(id: string, req: { text: string; proposalId?: string | undefined; outcome?: string | undefined; data?: Record<string, unknown> | undefined }): Promise<void> {
     const meta = await this.get(id);
     if (!meta) throw new NotFoundError(id);
     const log = await this.log(id);
-    log.append({ type: 'feedback', text: req.text, ...(req.proposalId ? { proposalId: req.proposalId } : {}), ...(req.outcome ? { outcome: req.outcome } : {}) });
+    log.append({ type: 'feedback', text: req.text, ...(req.proposalId ? { proposalId: req.proposalId } : {}), ...(req.outcome ? { outcome: req.outcome } : {}), ...(req.data ? { data: req.data } : {}) });
     this.feedback.set(id, [...(this.feedback.get(id) ?? []), req.text]);
   }
 
