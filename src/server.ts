@@ -15,6 +15,7 @@ import { gunzipSync } from 'node:zlib';
 import { config } from './config.js';
 import { SessionManager } from './sessions/SessionManager.js';
 import {
+  AppResultRequestSchema,
   CreateSessionRequestSchema,
   FeedbackRequestSchema,
   PostMessageRequestSchema,
@@ -94,6 +95,15 @@ app.put('/sessions/:id/graph', async (c) => {
   const parsed = PutGraphRequestSchema.safeParse(body);
   if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
   return c.json(await sessions.setGraph(id, parsed.data));
+});
+
+/** The app's answer to a run_app_command request. */
+app.post('/sessions/:id/app-results/:requestId', async (c) => {
+  const id = c.req.param('id');
+  if (!(await sessions.get(id))) return c.json({ error: 'not found' }, 404);
+  const parsed = AppResultRequestSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
+  return sessions.postAppResult(c.req.param('requestId'), parsed.data) ? c.body(null, 204) : c.json({ error: 'unknown or expired request' }, 404);
 });
 
 /** What the user did with a card / button; the agent hears it with the next message. */

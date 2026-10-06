@@ -92,3 +92,19 @@ and options, the windows and the commands. The current values of the main viz se
 Scaling methods: `linear`, `log` (positive, skewed), `symlog` (skewed, with zeros or negatives -
 RWR probabilities, scores), `quantile` (rank-spread). Pick the method with the attribute: a linear
 colour scale on RWR probabilities shows almost nothing.
+
+## Running the app's tools yourself: `run_app_command`
+
+`run_app_command({ command, params })` runs a command in the app and returns its result. Allowed:
+`compute` commands (`rwr.run`, `cluster.run`) and `view` commands (`settings.set`, `window.open`,
+`menu.run`). Refused: anything that changes the selection or the user's data (`subset.*`,
+`columns.addFromTsv`) - offer those as buttons.
+
+- `rwr.run`: `{ seeds?: [ids] (default: the selection), name?, alpha? (0.7), beta? (0.3), edgeMetrics? (default flow), topN? }`.
+  Adds `rwr_<name>_rank_n`, `rwr_<name>_probability_n` and `rwr_<name>_flow_n` (edge). Then read
+  `input/nodes.tsv` for the values, or colour the graph: `settings.set` `nodes.colorAttribute` =
+  `rwr_<name>_probability_n` with `nodes.colorMethod` = `symlog` (or `quantile`); the edge flow goes
+  on `edges.widthAttribute` / `edges.colorAttribute`.
+- `cluster.run`: `{ layout? ('default' = current positions), method? (louvain | leiden-simple), k? (15), resolution? (1), minClusterSize? (5), columnName? }`
+  -> a `cluster_<n>_c` column; colour by it with `settings.set`.
+- The app must be open (an Agent window attached to this session); otherwise the call times out.

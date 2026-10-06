@@ -13,7 +13,8 @@ import type { EmitFn } from './EventNormalizer.js';
 import { readGraphIndex } from './graphFiles.js';
 import { validateColumnsTsv } from './validate/columnsTsv.js';
 import { checkReportAgainstWorkspace, parseReportMarkdown, slugify } from './validate/report.js';
-import { REPORT_NODE_ROLES, type Report } from '../protocol.js';
+import { checkAppCommand } from './appCommandPolicy.js';
+import { REPORT_NODE_ROLES, type AppCatalog, type AppResultRequest, type Report } from '../protocol.js';
 
 export interface AppToolsContext {
   sessionId: string;
@@ -22,6 +23,10 @@ export interface AppToolsContext {
   emit: EmitFn;
   /** The run the tool call belongs to (from the normaliser). */
   currentRunId: () => string | null;
+  /** The app catalog the session last received (commands with effects). */
+  getCatalog: () => Promise<AppCatalog | null>;
+  /** Asks the app to run a command and waits for its answer. */
+  requestApp: (command: string, params: Record<string, unknown>, label: string) => Promise<AppResultRequest>;
 }
 
 type ToolResult = { content: Array<{ type: 'text'; text: string }>; isError?: boolean };
@@ -107,5 +112,35 @@ export function createAppToolsServer(ctx: AppToolsContext): McpSdkServerConfigWi
     { alwaysLoad: true }
   );
 
-  return createSdkMcpServer({ name: 'asdf10k', version: '0.1.0', tools: [proposeNodeColumns, publishReport] });
+  const runAppCommand = tool(
+    'run_app_command',
+    "Runs a command in the app (the user's browser) and waits for the result. For compute commands (rwr.run, cluster.run - the app's own GPU random walk and clustering; new columns are in input/nodes.tsv right after the call) and view commands (settings.set, window.open, menu.run). The command list with parameter schemas is in the skill asdf10k-app-catalog. Commands that change the selection or add data (subset.*, columns.addFromTsv) are refused here: offer them as buttons instead.",
+    {
+      command: z.string().describe('command id, e.g. rwr.run'),
+      params: z.record(z.string(), z.unknown()).optional().describe('parameters per the command schema')
+    },
+    async ({ command, params }) => {
+      const check = checkAppCommand(await ctx.getCatalog(), command);
+      if (!check.ok) return text(check.error, true);
+      const before = readGraphIndex(ctx.workspace)?.columns ?? new Set<string>();
+      let answer: AppResultRequest;
+      try {
+        answer = await ctx.requestApp(command, params ?? {}, check.label);
+      } catch (e) {
+        return text(`${check.label}: ${e instanceof Error ? e.message : String(e)}`, true);
+      }
+      if (!answer.ok) return text(`${check.label} failed: ${answer.error ?? 'unknown error'}`, true);
+      const after = readGraphIndex(ctx.workspace)?.columns ?? new Set<string>();
+      const newColumns = [...after].filter((c) => !before.has(c));
+      const parts = [`${check.label}: done.`];
+      if (answer.result !== undefined) parts.push(`Result: ${JSON.stringify(answer.result)}`);
+      if (newColumns.length > 0) parts.push(`New node columns in input/nodes.tsv: ${newColumns.join(', ')}.`);
+      else if (answer.graphHash) parts.push('input/nodes.tsv and input/edges.tsv were re-uploaded (values or edge columns changed).');
+      if (answer.viz) parts.push(`Viz now: ${Object.entries(answer.viz).map(([k, v]) => `${k}=${String(v)}`).join(', ')}.`);
+      return text(parts.join('\n'));
+    },
+    { alwaysLoad: true }
+  );
+
+  return createSdkMcpServer({ name: 'asdf10k', version: '0.1.0', tools: [proposeNodeColumns, publishReport, runAppCommand] });
 }

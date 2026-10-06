@@ -18,7 +18,7 @@ import { composePrompt, renderAppContext, renderUserActions, writeAppInputs } fr
 import { createAppToolsServer } from '../agent/appTools.js';
 import { writeCatalogSkill } from '../agent/catalogSkill.js';
 import { FakeAgent } from '../fake/FakeAgent.js';
-import type { AppCatalog, AppSnapshot } from '../protocol.js';
+import { AppCatalogSchema, type AppCatalog, type AppResultRequest, type AppSnapshot } from '../protocol.js';
 
 interface LiveSession {
   runner: AgentRunner;
@@ -26,7 +26,11 @@ interface LiveSession {
   log: EventLog;
   running: boolean;
   idleTimer: NodeJS.Timeout | null;
+  emit: (event: AgentEventInput, persist?: boolean) => void;
 }
+
+/** How long run_app_command waits for the app. */
+const APP_REQUEST_TIMEOUT_MS = 120_000;
 
 export class NotFoundError extends Error {
   constructor(id: string) {
@@ -50,6 +54,10 @@ export class SessionManager {
   private readonly metas = new Map<string, SessionMeta>();
   /** What the user did with cards / buttons since the last message, per session (prefixed to the next prompt). */
   private readonly feedback = new Map<string, string[]>();
+  /** The app catalog per session (also in workspace/input/catalog.json). */
+  private readonly catalogs = new Map<string, AppCatalog>();
+  /** Open run_app_command requests waiting for the app's answer. */
+  private readonly pendingApp = new Map<string, { resolve: (r: AppResultRequest) => void; reject: (e: Error) => void; timer: NodeJS.Timeout }>();
 
   get liveCount(): number {
     return this.live.size;
@@ -148,10 +156,14 @@ export class SessionManager {
     if (!meta) throw new NotFoundError(id);
     const session = await this.ensureLive(id, meta);
     // The app's catalog (settings, windows, commands) -> generated skill, rewritten when it changed.
-    if (catalog && catalog.hash !== meta.catalogHash) {
-      await writeCatalogSkill(this.workspaceDir(id), catalog);
-      await this.updateMeta(id, (m) => ({ ...m, catalogHash: catalog.hash, updatedAt: Date.now() }));
-      await session.runner.reloadSkills?.().catch((e: unknown) => console.warn('[agent] reloadSkills failed', e));
+    if (catalog) {
+      this.catalogs.set(id, catalog);
+      if (catalog.hash !== meta.catalogHash) {
+        await writeCatalogSkill(this.workspaceDir(id), catalog);
+        await writeFile(join(this.workspaceDir(id), 'input', 'catalog.json'), JSON.stringify(catalog));
+        await this.updateMeta(id, (m) => ({ ...m, catalogHash: catalog.hash, updatedAt: Date.now() }));
+        await session.runner.reloadSkills?.().catch((e: unknown) => console.warn('[agent] reloadSkills failed', e));
+      }
     }
     let prompt = text;
     const userActions = this.feedback.get(id) ?? [];
@@ -176,6 +188,46 @@ export class SessionManager {
     session.runner.push(prompt, messageId);
     this.touch(id, session);
     return { messageId };
+  }
+
+  /** The catalog the app last sent (memory, else workspace/input/catalog.json). */
+  async getCatalog(id: string): Promise<AppCatalog | null> {
+    const cached = this.catalogs.get(id);
+    if (cached) return cached;
+    const file = join(this.workspaceDir(id), 'input', 'catalog.json');
+    if (!existsSync(file)) return null;
+    try {
+      const catalog = AppCatalogSchema.parse(JSON.parse(await readFile(file, 'utf8')));
+      this.catalogs.set(id, catalog);
+      return catalog;
+    } catch {
+      return null;
+    }
+  }
+
+  /** run_app_command: asks the app (an attached Agent window) to run a command; resolves with its answer. */
+  requestApp(id: string, command: string, params: Record<string, unknown>, label: string): Promise<AppResultRequest> {
+    const session = this.live.get(id);
+    if (!session) return Promise.reject(new Error('no live session'));
+    const requestId = randomUUID();
+    return new Promise<AppResultRequest>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingApp.delete(requestId);
+        reject(new Error(`the app did not answer within ${APP_REQUEST_TIMEOUT_MS / 1000} s - is the Agent window open and connected?`));
+      }, APP_REQUEST_TIMEOUT_MS);
+      this.pendingApp.set(requestId, { resolve, reject, timer });
+      session.emit({ type: 'app_request', requestId, command, params, label }, false);
+    });
+  }
+
+  /** The app's answer to an app_request; false when the request is unknown (timed out, duplicate). */
+  postAppResult(requestId: string, body: AppResultRequest): boolean {
+    const pending = this.pendingApp.get(requestId);
+    if (!pending) return false;
+    clearTimeout(pending.timer);
+    this.pendingApp.delete(requestId);
+    pending.resolve(body);
+    return true;
   }
 
   /** The app reports what the user did with a card / button; logged, and told to the agent with the next message. */
@@ -206,7 +258,6 @@ export class SessionManager {
     const existing = this.live.get(id);
     if (existing) return existing;
     const log = await this.log(id);
-    const session: LiveSession = { runner: null as unknown as AgentRunner, normalizer: null, log, running: false, idleTimer: null };
     const emit = (event: AgentEventInput, persist = true): void => {
       const stored = log.append(event, persist);
       if (stored.type === 'run_start') session.running = true;
@@ -214,6 +265,7 @@ export class SessionManager {
       void this.onEvent(id, stored);
       this.touch(id, session);
     };
+    const session: LiveSession = { runner: null as unknown as AgentRunner, normalizer: null, log, running: false, idleTimer: null, emit };
     if (config.fake) {
       session.runner = new FakeAgent(emit, this.workspaceDir(id), id, meta.dataset);
     } else {
@@ -224,7 +276,9 @@ export class SessionManager {
         dataset: meta.dataset,
         workspace: this.workspaceDir(id),
         emit,
-        currentRunId: () => normalizer.currentRunId
+        currentRunId: () => normalizer.currentRunId,
+        getCatalog: () => this.getCatalog(id),
+        requestApp: (command, params, label) => this.requestApp(id, command, params, label)
       });
       session.runner = new LiveQuery(buildAgentOptions(this.workspaceDir(id), meta.sdkSessionId, { asdf10k: tools }), {
         onMessage: (message) => normalizer.handle(message),

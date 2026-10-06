@@ -113,6 +113,8 @@ export const AgentEventSchema = z.discriminatedUnion('type', [
   z.object({ ...base, type: z.literal('report'), ...inRun, report: ReportSchema }),
   /** What the user did with a card / button (posted by the app; prefixed to the agent's next message). */
   z.object({ ...base, type: z.literal('feedback'), text: z.string(), proposalId: z.string().optional(), outcome: z.string().optional() }),
+  /** run_app_command: the app should run this command and POST the result to /app-results/:requestId. Not persisted. */
+  z.object({ ...base, type: z.literal('app_request'), requestId: z.string(), command: z.string(), params: z.record(z.string(), z.unknown()), label: z.string() }),
   z.object({
     ...base,
     type: z.literal('run_end'),
@@ -239,6 +241,18 @@ export const PostMessageRequestSchema = z.object({
   /** Sent when its hash differs from the session's catalogHash; rendered into a skill. */
   catalog: AppCatalogSchema.optional()
 });
+/** POST /sessions/:id/app-results/:requestId: the app's answer to an app_request. */
+export const AppResultRequestSchema = z.object({
+  ok: z.boolean(),
+  result: z.unknown().optional(),
+  error: z.string().optional(),
+  /** Set when the app re-uploaded the graph after the command (new columns). */
+  graphHash: z.string().optional(),
+  /** Viz settings after the command. */
+  viz: z.record(z.string(), z.unknown()).optional()
+});
+export type AppResultRequest = z.infer<typeof AppResultRequestSchema>;
+
 /** POST /sessions/:id/feedback: one line the agent should know ("saved subset hubs_2 (12 nodes)"), optionally tied to a proposal card. */
 export const FeedbackRequestSchema = z.object({ text: z.string().min(1), proposalId: z.string().optional(), outcome: z.string().optional() });
 
