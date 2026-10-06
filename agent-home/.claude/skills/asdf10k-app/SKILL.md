@@ -111,8 +111,10 @@ and options, the windows and the commands. The current values of the main viz se
 {"type":"window","label":"Distributions to the whole graph","id":"popout-distribution","config":{"useGlobal":true}}
 ```
 
-  Ring menu actions are not commands: `[Expand by one hop](cmd:subset.action?id=subset.expandOneHop)`,
-  `[Next layout](cmd:menu.run?id=layout.next)` - never `cmd:subset.expandOneHop`.
+  Subset actions are commands of their own, offered as buttons: `[Expand by one hop](cmd:subset.expandOneHop)`,
+  `[Connect the selection](cmd:subset.connect)`, `[Common neighbours](cmd:subset.commonNeighbors)`,
+  `[Prune leaves](cmd:subset.pruneLeaves)`, `[Clear](cmd:subset.clear)`; camera / layout actions
+  (`nav.flyToSubset`, `nav.resetView`, `layout.next`, `layout.prev`) you may run yourself.
   Link parameters are exactly the command's: `type=<window type>` (not `id`, not `window`) and the
   option keys from the catalog (`selectedColumn` for Enrichment and Distributions, `colX` / `colY`
   for Scatter, `column` for the meta networks). Block = you decided (applies with auto-accept); link = an offer the user clicks:
@@ -132,7 +134,8 @@ opacity to 0.1").
 ## Running the app's tools yourself: `run_app_command`
 
 `run_app_command({ command, params })` runs a command in the app and returns its result. Allowed:
-`compute` commands (`rwr.run`, `cluster.run`) and `menu.run` (fly to subset, reset view). Refused:
+`compute` commands (`rwr.run`, `cluster.run`) and the camera / layout actions (`nav.flyToSubset`,
+`nav.resetView`, `layout.next`, `layout.prev`). Refused:
 view changes (`settings.set`, `window.open`, `window.configure`, `window.close` - write them as
 cards, see above) and anything that changes the selection or the user's data (`subset.*`,
 `columns.addFromTsv`) - offer those as buttons.

@@ -11,15 +11,15 @@ const catalog: AppCatalog = {
     { id: 'settings.set', label: 'Set a viz setting', description: '', effect: 'view', paramsSchema: {} },
     { id: 'rwr.run', label: 'Random walk with restart', description: '', effect: 'compute', paramsSchema: {} },
     { id: 'window.open', label: 'Open a window', description: '', effect: 'view', paramsSchema: {} },
-    { id: 'menu.run', label: 'Run a menu action', description: '', effect: 'view', paramsSchema: {} },
+    { id: 'nav.resetView', label: 'Reset view', description: '', effect: 'view', paramsSchema: {} },
     { id: 'subset.set', label: 'Set subset', description: '', effect: 'selection', paramsSchema: {} },
     { id: 'columns.addFromTsv', label: 'Add node columns', description: '', effect: 'data', paramsSchema: {} }
   ]
 };
 
 describe('checkAppCommand', () => {
-  it('allows compute commands and menu actions', () => {
-    expect(checkAppCommand(catalog, 'menu.run')).toEqual({ ok: true, label: 'Run a menu action', effect: 'view' });
+  it('allows compute commands and camera / layout actions', () => {
+    expect(checkAppCommand(catalog, 'nav.resetView')).toEqual({ ok: true, label: 'Reset view', effect: 'view' });
     expect(checkAppCommand(catalog, 'rwr.run').ok).toBe(true);
   });
   it('refuses view changes that the app renders as cards', () => {

@@ -17,7 +17,7 @@ export function checkAppCommand(catalog: AppCatalog | null, command: string): Po
   if (!cmd) {
     // a ring menu id used as a command: say how it runs
     if (catalog.actions.some((a) => a.id === command)) {
-      return { ok: false, error: command.startsWith('subset.') ? `"${command}" is a ring menu subset action: offer it as a button [label](cmd:subset.action?id=${command}) - it changes the selection, so the user clicks.` : `"${command}" is a ring menu action: run it with menu.run { id: "${command}" } (or offer [label](cmd:menu.run?id=${command})).` };
+      return { ok: false, error: `"${command}" is a menu entry, not a command; the commands are listed in the skill asdf10k-app-catalog.` };
     }
     if (catalog.settings.some((s) => s.id === command)) return { ok: false, error: `"${command}" is a setting: change it with a settings card ({"type":"settings","changes":[{"id":"${command}","value":...}]}).` };
     return { ok: false, error: `Unknown command "${command}". Commands: ${catalog.commands.map((c) => `${c.id} (${c.effect})`).join(', ')}.` };

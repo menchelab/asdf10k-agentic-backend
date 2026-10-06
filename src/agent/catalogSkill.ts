@@ -56,7 +56,7 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
   lines.push('');
 
   if (catalog.actions.length > 0) {
-    lines.push('## Actions (`menu.run` for view actions, `subset.action` for subset actions)');
+    lines.push('## Ring menu actions');
     lines.push('');
     lines.push('| id | label | category | effect | what it does |');
     lines.push('|---|---|---|---|---|');
@@ -78,7 +78,7 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
 
   lines.push('## Commands');
   lines.push('');
-  lines.push('Effects: `view` and `compute` commands may be run by you (run_app_command, when available); `selection` and `data` commands are offered to the user as buttons (`cmd:` links, cards).');
+  lines.push('Effects: `compute` commands and the camera / layout actions (`nav.*`, `layout.*`) may be run by you (run_app_command); view changes (settings, windows) are cards; `selection` commands (`subset.*`: set, add, expand by one hop, connect, common neighbours, prune leaves, isolate, clear, save to library) and `data` commands are offered to the user as buttons (`cmd:` links, chips, cards). Every action of the app is a command with its own id - there is no menu indirection.');
   lines.push('');
   for (const c of catalog.commands) {
     lines.push(`### \`${c.id}\` - ${c.label} (${c.effect})`);

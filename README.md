@@ -133,7 +133,7 @@ curl -L -O https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-
   `<workspace>/.claude/skills/asdf10k-app-catalog/SKILL.md` and the session reloads its skills; the
   catalog is kept in the session meta for the policy check.
 - `run_app_command` (`src/agent/appTools.ts`): the agent runs an app command. `src/agent/appCommandPolicy.ts`
-  allows `compute` (`rwr.run`, `cluster.run`) and `menu.run`; the view changes `settings.set`,
+  allows `compute` (`rwr.run`, `cluster.run`) and the camera / layout actions (`nav.*`, `layout.*`); the view changes `settings.set`,
   `window.open`, `window.configure`, `window.close` are refused with a hint to write a card (the
   app renders `asdf10k` blocks and `cmd:` links to them as change cards with Revert; blocks apply
   themselves when the user's auto-accept is on); `selection` and `data` commands are refused with

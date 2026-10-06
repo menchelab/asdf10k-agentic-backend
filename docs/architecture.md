@@ -18,7 +18,7 @@ session's log; the window replays the log on attach and then follows the SSE str
 | `src/agent/EventNormalizer.ts` | SDK messages -> protocol events: runs, text blocks (deltas + final), tool steps with labels (`toolLabel`, `summarizeCommand`), todos, status, interrupt bookkeeping |
 | `src/agent/appContext.ts` | The `<app_context>` block put before every user message (dataset, columns, selection, library, open windows with ids, viz, what the user did since) |
 | `src/agent/appTools.ts` | In-process MCP server `asdf10k`: `propose_node_columns`, `publish_report`, `run_app_command` |
-| `src/agent/appCommandPolicy.ts` | Which commands `run_app_command` may run (`compute`, `menu.run`); view changes are cards, selection / data are buttons |
+| `src/agent/appCommandPolicy.ts` | Which commands `run_app_command` may run (`compute`, `nav.*` / `layout.*` actions); view changes are cards, selection / data are buttons |
 | `src/agent/catalogSkill.ts` | Renders the app's catalog (settings, actions, windows, commands) into the generated skill `asdf10k-app-catalog` in the session workspace |
 | `src/agent/systemPrompt.ts` | The prompt appended to Claude Code's preset: identity (BigBrainz20k), audience (biologists / bioinformaticians, their datasets), files, cards vs links, policy, answer length (result first, at most 6 sentences or 5 bullets plus one table / card, no preamble or closing) |
 | `src/agent/aside.ts` | "What's up?": a forked one-turn side query without tools |

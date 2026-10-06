@@ -114,7 +114,7 @@ export function createAppToolsServer(ctx: AppToolsContext): McpSdkServerConfigWi
 
   const runAppCommand = tool(
     'run_app_command',
-    "Runs a command in the app (the user's browser) and waits for the result. For compute commands (rwr.run, cluster.run - the app's own GPU random walk and clustering; new columns are in input/nodes.tsv right after the call) and menu.run (fly to subset, reset view). View changes - settings.set, window.open, window.configure, window.close - are not run here: write them as asdf10k cards (they apply themselves with the user's auto-accept and have Revert). Commands that change the selection or add data (subset.*, columns.addFromTsv) are refused: offer them as buttons. The command list with parameter schemas is in the skill asdf10k-app-catalog.",
+    "Runs a command in the app (the user's browser) and waits for the result. For compute commands (rwr.run, cluster.run - the app's own GPU random walk and clustering; new columns are in input/nodes.tsv right after the call) and camera / layout actions (nav.flyToSubset, nav.resetView, layout.next, layout.prev). View changes - settings.set, window.open, window.configure, window.close - are not run here: write them as asdf10k cards (they apply themselves with the user's auto-accept and have Revert). Commands that change the selection or add data (subset.*, columns.addFromTsv) are refused: offer them as buttons. The command list with parameter schemas is in the skill asdf10k-app-catalog.",
     {
       command: z.string().describe('command id, e.g. rwr.run'),
       params: z.record(z.string(), z.unknown()).optional().describe('parameters per the command schema')
