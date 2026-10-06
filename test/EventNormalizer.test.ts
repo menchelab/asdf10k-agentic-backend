@@ -6,7 +6,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
-import { EventNormalizer, toolLabel } from '../src/agent/EventNormalizer.js';
+import { EventNormalizer, toolLabel, summarizeCommand } from '../src/agent/EventNormalizer.js';
 import type { AgentEventInput } from '../src/protocol.js';
 
 const fixturesDir = resolve(import.meta.dirname, '../spike/fixtures');
@@ -120,5 +120,16 @@ describe('toolLabel', () => {
     expect(toolLabel('Read', { file_path: '/a/b/nodes.tsv' })).toBe('Read nodes.tsv');
     expect(toolLabel('mcp__asdf10k__show_image', {})).toBe('show_image');
     expect(toolLabel('WebSearch', { query: 'x' })).toBe('Web search: x');
+  });
+});
+
+describe('summarizeCommand', () => {
+  it('turns python one-liners and shell commands into short labels', () => {
+    expect(summarizeCommand('python -c "\nimport pandas as pd\nn=pd.read_csv(\'input/nodes.tsv\',sep=\'\\t\')\nprint(n.degree_n.describe())"')).toBe('Python: summary statistics of nodes');
+    expect(summarizeCommand('python -c "# degree per layer\nimport pandas as pd"')).toBe('Python: degree per layer');
+    expect(summarizeCommand('python out/plot.py')).toBe('Run plot.py');
+    expect(summarizeCommand('head -3 input/selection.tsv')).toBe('Read selection.tsv');
+    expect(summarizeCommand('ls out/')).toBe('List files');
+    expect(summarizeCommand('mkdir -p out/plots')).toBe('Create folder out/plots');
   });
 });

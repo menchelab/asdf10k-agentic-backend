@@ -66,12 +66,12 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
 
   lines.push('## Windows (`window` cards; `window.open` / `window.configure` / `window.close` commands)');
   lines.push('');
-  lines.push('Scope (in brackets after the purpose): most analysis windows have a **G / S toggle** - `global` = all nodes of the graph, `subset` = the current selection (the highlighted nodes; the window follows selection changes unless `frozen`). `[global-or-subset]` windows take `useGlobal` (true = G, false = S; the default is in the option text), `[subset]` windows always show the selection (an empty selection gives an empty window; Enrichment compares the selection with the whole graph as background), `[global]` windows ignore the selection, `[n/a]` windows are tools. When the user asks about "my selection", open the window with `useGlobal=false`; for the whole graph with `useGlobal=true`.');
+  lines.push('Options marked **required** must be given (Enrichment, Distributions, Heatmap, Scatter, UpSet and the meta networks need their column - without it the window opens empty and `window.open` refuses). Scope (in brackets after the purpose): most analysis windows have a **G / S toggle** - `global` = all nodes of the graph, `subset` = the current selection (the highlighted nodes; the window follows selection changes unless `frozen`). `[global-or-subset]` windows take `useGlobal` (true = G, false = S; the default is in the option text), `[subset]` windows always show the selection (an empty selection gives an empty window; Enrichment compares the selection with the whole graph as background), `[global]` windows ignore the selection, `[n/a]` windows are tools. When the user asks about "my selection", open the window with `useGlobal=false`; for the whole graph with `useGlobal=true`.');
   lines.push('');
   lines.push('| type | label | purpose | options |');
   lines.push('|---|---|---|---|');
   for (const w of catalog.windows) {
-    const options = (w.options ?? []).map((o) => `\`${o.key}\` (${o.kind}${o.values ? `: ${o.values.join(' / ')}` : ''})${o.description ? ` - ${o.description}` : ''}`).join('; ');
+    const options = (w.options ?? []).map((o) => `\`${o.key}\` (${o.required ? 'required ' : ''}${o.kind}${o.values ? `: ${o.values.join(' / ')}` : ''})${o.description ? ` - ${o.description}` : ''}`).join('; ');
     lines.push(`| \`${w.type}\` | ${w.label} | ${w.purpose ?? ''} | ${options} |`);
   }
   lines.push('');

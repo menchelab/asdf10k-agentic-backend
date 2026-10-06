@@ -222,7 +222,7 @@ export const CatalogWindowSchema = z.object({
   type: z.string(),
   label: z.string(),
   purpose: z.string().optional(),
-  options: z.array(z.object({ key: z.string(), kind: z.string(), values: z.array(z.string()).optional(), description: z.string().optional() })).optional()
+  options: z.array(z.object({ key: z.string(), kind: z.string(), required: z.boolean().optional(), values: z.array(z.string()).optional(), description: z.string().optional() })).optional()
 });
 export type CatalogWindow = z.infer<typeof CatalogWindowSchema>;
 export const CatalogCommandSchema = z.object({ id: z.string(), label: z.string(), description: z.string(), effect: z.string(), paramsSchema: z.record(z.string(), z.unknown()) });
@@ -276,6 +276,8 @@ export interface HealthResponse {
   /** The Python environment (python/.venv) exists. */
   python: boolean;
   liveSessions: number;
+  /** Speech to text for the push-to-talk button (whisper.cpp); `problem` says what is missing. */
+  transcribe?: { available: boolean; model: string | null; problem: string | null };
 }
 
 /** Payload of the SSE `ready` event sent once the replay is done. */

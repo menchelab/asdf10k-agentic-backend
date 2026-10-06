@@ -2,6 +2,7 @@
 
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { resolveWhisperConfig } from './transcribe/whisper.js';
 
 const root = resolve(import.meta.dirname, '..');
 
@@ -21,5 +22,7 @@ export const config = {
   fake: process.env.AGENT_FAKE === '1',
   /** Static skills for every session (`agent-home/.claude/skills`), loaded via additionalDirectories. */
   agentHome: resolve(root, 'agent-home'),
-  pythonBin: resolve(root, 'python/.venv/bin')
+  pythonBin: resolve(root, 'python/.venv/bin'),
+  /** Speech to text for the push-to-talk button (WHISPER_* in .env.example). */
+  whisper: resolveWhisperConfig(process.env, root)
 };

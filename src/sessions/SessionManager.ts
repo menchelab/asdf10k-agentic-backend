@@ -269,7 +269,8 @@ export class SessionManager {
     if (config.fake) {
       session.runner = new FakeAgent(emit, this.workspaceDir(id), id, meta.dataset);
     } else {
-      const normalizer = new EventNormalizer(emit, id.slice(0, 8));
+      const runsSoFar = (await log.read(0)).filter((e) => e.type === 'run_start').length;
+      const normalizer = new EventNormalizer(emit, id.slice(0, 8), runsSoFar);
       session.normalizer = normalizer;
       const tools = createAppToolsServer({
         sessionId: id,

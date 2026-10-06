@@ -35,10 +35,18 @@ export class EventNormalizer {
   private readonly tasks = new Map<string, TodoItem>();
   private readonly pendingTaskCreates = new Map<string, { subject: string; activeForm?: string }>();
 
+  /**
+   * @param runsSoFar run_start events already in the session's log: run ids continue after them, so
+   * a session re-opened after a backend restart does not reuse `r1` (its text would land in the
+   * old run's block in the window).
+   */
   constructor(
     private readonly emit: EmitFn,
-    private readonly runPrefix: string
-  ) {}
+    private readonly runPrefix: string,
+    runsSoFar = 0
+  ) {
+    this.runCounter = runsSoFar;
+  }
 
   get running(): boolean {
     return this.runId !== null;
@@ -298,13 +306,52 @@ export class EventNormalizer {
 
 const APP_TOOL_PREFIX = 'mcp__asdf10k__';
 
+/**
+ * A short human-readable label for a shell command without a description ("Python: degree
+ * statistics", "Read selection.tsv"). The prompt asks the agent for a description; this is the
+ * fallback, so the step list never shows raw `python -c "..."` one-liners.
+ */
+export function summarizeCommand(command: string): string {
+  const cmd = command.trim();
+  if (!cmd) return '';
+  const first = cmd.split('\n').find((l) => l.trim() && !l.trim().startsWith('#'))?.trim() ?? cmd;
+  const words = first.split(/\s+/);
+  const prog = (words[0] ?? '').split('/').pop() ?? '';
+  const files = words.slice(1).filter((w) => /^[\w./-]+\.[a-z0-9]{1,5}$/i.test(w) && !w.startsWith('-')).map((w) => w.split('/').pop() ?? w);
+  const fileList = files.slice(0, 2).join(', ');
+  // python: a comment or the imports say what it is about
+  if (/^python3?$/.test(prog) || prog === 'uv') {
+    const comment = cmd.match(/#\s*([^\n"']{4,80})/)?.[1]?.trim();
+    if (comment) return `Python: ${comment}`;
+    if (files.length > 0 && !first.includes(' -c ')) return `Run ${fileList}`;
+    const topics: string[] = [];
+    if (/networkx|nx\./.test(cmd)) topics.push('network analysis');
+    if (/matplotlib|plt\./.test(cmd)) topics.push('plot');
+    if (/scipy|hypergeom|fisher|ttest|mannwhitney/.test(cmd)) topics.push('statistics');
+    if (/value_counts|describe\(|groupby|mean\(|median\(/.test(cmd)) topics.push('summary statistics');
+    if (/to_csv|to_tsv|open\([^)]*['"]w/.test(cmd)) topics.push('write file');
+    const inputs = [...cmd.matchAll(/input\/(\w+)\.tsv/g)].map((m) => m[1]);
+    const about = topics.length ? topics.slice(0, 2).join(' + ') : 'data analysis';
+    return `Python: ${about}${inputs.length ? ` of ${[...new Set(inputs)].slice(0, 2).join(' and ')}` : ''}`;
+  }
+  const verbs: Record<string, string> = { cat: 'Read', head: 'Read', tail: 'Read', less: 'Read', wc: 'Count lines in', ls: 'List', mkdir: 'Create folder', cp: 'Copy', mv: 'Move', rm: 'Delete', grep: 'Search in', rg: 'Search in', cut: 'Read columns of', sort: 'Sort', awk: 'Process', sed: 'Process', echo: 'Write', curl: 'Fetch', wget: 'Fetch', pip: 'Install package', npm: 'npm', node: 'Run', bash: 'Run', sh: 'Run' };
+  const verb = verbs[prog];
+  if (verb) {
+    if (prog === 'ls') return fileList ? `List ${fileList}` : 'List files';
+    if ((prog === 'grep' || prog === 'rg') && words[1]) return `Search ${words.slice(1).find((w) => !w.startsWith('-')) ?? ''}${fileList ? ` in ${fileList}` : ''}`.trim();
+    if (prog === 'echo') return 'Write text';
+    return fileList ? `${verb} ${fileList}` : `${verb} ${words.slice(1).filter((w) => !w.startsWith('-')).slice(0, 2).join(' ')}`.trim();
+  }
+  return first.length > 60 ? `${first.slice(0, 59)}…` : first;
+}
+
 /** Readable one-line name of a tool call for the step list. */
 export function toolLabel(name: string, input: Rec): string {
   const s = (v: unknown, n = 70): string => (typeof v === 'string' ? (v.length > n ? `${v.slice(0, n - 1)}…` : v) : '');
   const base = (p: unknown): string => (typeof p === 'string' ? (p.split('/').pop() ?? p) : '');
   switch (name) {
     case 'Bash':
-      return s(input.description) || s(input.command) || 'Bash';
+      return s(input.description) || summarizeCommand(typeof input.command === 'string' ? input.command : '') || 'Bash';
     case 'Read':
       return `Read ${base(input.file_path)}`;
     case 'Write':

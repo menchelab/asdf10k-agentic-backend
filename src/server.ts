@@ -14,6 +14,7 @@ import { extname, join, resolve, sep } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { config } from './config.js';
 import { SessionManager } from './sessions/SessionManager.js';
+import { Transcriber } from './transcribe/whisper.js';
 import {
   AppResultRequestSchema,
   CreateSessionRequestSchema,
@@ -31,6 +32,9 @@ const sdkPkg = JSON.parse(await readFile(resolve(config.root, 'node_modules/@ant
 
 const sessions = new SessionManager();
 await sessions.init();
+const transcriber = new Transcriber(config.whisper);
+if (!transcriber.available) console.info(`voice input off: ${transcriber.problem}`);
+else console.info(`voice input: whisper.cpp ${transcriber.modelName} (${config.whisper.language}, ${config.whisper.threads} threads)`);
 
 const app = new Hono().basePath('/api');
 
@@ -49,9 +53,23 @@ app.get('/health', (c) => {
     sdkVersion: sdkPkg.version,
     fake: config.fake,
     python: existsSync(join(config.pythonBin, 'python')),
-    liveSessions: sessions.liveCount
+    liveSessions: sessions.liveCount,
+    transcribe: { available: transcriber.available, model: transcriber.modelName, problem: transcriber.problem }
   };
   return c.json(body);
+});
+
+/** Push-to-talk: 16 kHz mono 16-bit WAV body -> { text, language, durationMs }. */
+app.post('/transcribe', async (c) => {
+  if (!transcriber.available) return c.json({ error: transcriber.problem ?? 'transcription unavailable' }, 503);
+  const wav = Buffer.from(await c.req.arrayBuffer());
+  if (wav.length < 1000) return c.json({ error: 'empty recording' }, 400);
+  if (wav.length > 40 * 1024 * 1024) return c.json({ error: 'recording too long' }, 413);
+  try {
+    return c.json(await transcriber.transcribeWav(wav));
+  } catch (e) {
+    return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+  }
 });
 
 app.get('/sessions', async (c) => c.json(await sessions.list()));

@@ -78,6 +78,27 @@ normaliser.
 - Skills: `asdf10k-columns`, `asdf10k-app` (actions syntax), `asdf10k-reports` (front matter,
   roles, template).
 
+## Voice input
+
+`POST /api/transcribe` (16 kHz mono 16-bit WAV body) returns `{ text, language, durationMs }` for
+the Agent window's push-to-talk button (`src/transcribe/whisper.ts`). It shells out to whisper.cpp's
+`whisper-cli` (`brew install whisper-cpp`; Metal on Apple Silicon) with a ggml model found in
+`WHISPER_MODELS_DIR` (default `../asdf10k-agentic-models`, best model first:
+`ggml-large-v3-turbo-q8_0.bin`). `/health` reports `transcribe: { available, model, problem }`; the
+app hides the button when it is off. Env: `WHISPER_CPP_BIN`, `WHISPER_MODEL`, `WHISPER_MODELS_DIR`,
+`WHISPER_LANG` (default `auto`; `en` / `de` skip detection), `WHISPER_THREADS` (4).
+
+Model choice (whisper.cpp quantisations of large-v3-turbo): **q8_0** (874 MB) is practically
+lossless against f16 and is the default; **q5_0** (574 MB) is a little worse on names and
+non-English and only worth it when memory is tight; plain large-v3 is 6-8x slower for a small
+accuracy gain. On an M3 a 7 s clip takes about 4 s cold (model load included), ~1 s warm; calls are
+queued one after another. Download:
+
+```bash
+mkdir -p ../asdf10k-agentic-models && cd ../asdf10k-agentic-models
+curl -L -O https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin
+```
+
 ## The app's capabilities (phase 4)
 
 - The app sends its **catalog** with a message when its hash changes (`PostMessageRequest.catalog`:
