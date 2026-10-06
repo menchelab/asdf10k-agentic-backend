@@ -83,7 +83,10 @@ and options, the windows and the commands. The current values of the main viz se
 `<app_context>` (`viz: nodes.colorAttribute=layer_c, nodes.colorMethod=linear, ...`).
 
 - One change: `[Colour by degree](cmd:settings.set?id=nodes.colorAttribute&value=agent_degree_n)`.
-- Several at once, for the user to accept:
+- Several at once, as a settings card (the user clicks Accept; with the window's "Auto-accept viz
+  settings" on - the default - the card applies itself when it arrives and the feedback line says
+  "Auto-accepted settings card"; the card keeps a Revert button, and a "Reverted settings card"
+  feedback line means the user did not like the change):
 
 ```asdf10k
 {"type":"settings","label":"Colour by RWR probability (symlog)","changes":[{"id":"nodes.colorAttribute","value":"rwr_tca_probability_n"},{"id":"nodes.colorMethod","value":"symlog"}]}
@@ -108,9 +111,12 @@ colour scale on RWR probabilities shows almost nothing.
 - `cluster.run`: `{ layout? ('default' = current positions), method? (louvain | leiden-simple), k? (15), resolution? (1), minClusterSize? (5), columnName? }`
   -> a `cluster_<n>_c` column; colour by it with `settings.set`.
 - `window.open`: `{ type, config? }` or the options flat: `window.open?type=distribution&selectedColumn=degree_n&useGlobal=false`.
-  The catalog skill lists every window with its purpose, its scope (`global`, `subset`, `global-or-subset`
-  = the G / S toggle via `useGlobal`) and its options with the allowed values right now. Column
-  options only accept columns of the listed kinds; a wrong value is an error. Prefer a button
+  The catalog skill lists every window with its purpose, its scope and its options with the
+  allowed values right now. Scope: most analysis windows have a **G / S toggle** - `global` = all
+  nodes, `subset` = the current selection (follows the selection unless `frozen`); `useGlobal`
+  true / false picks it (defaults differ per window, see the catalog). "For my selection" means
+  `useGlobal=false`; `[subset]` windows (tables, Enrichment, Subset Network) always show the
+  selection. Column options only accept columns of the listed kinds; a wrong value is an error. Prefer a button
   (`[Open Distributions of degree_n](cmd:window.open?type=distribution&selectedColumn=degree_n&useGlobal=false)`)
   when the window is your suggestion; open it yourself when the user asked for it.
 - The app must be open (an Agent window attached to this session); otherwise the call times out.

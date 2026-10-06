@@ -28,14 +28,14 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
 
   lines.push('## Settings');
   lines.push('');
-  lines.push('| id | label | category | type | options / range |');
-  lines.push('|---|---|---|---|---|');
+  lines.push('| id | label | category | type | options / range | what it does |');
+  lines.push('|---|---|---|---|---|---|');
   for (const s of catalog.settings) {
     let detail = '';
     if (s.type === 'dropdown') detail = (s.options ?? []).map((o) => `\`${o}\``).join(', ');
     else if (s.type === 'number') detail = `${s.min ?? '-inf'} .. ${s.max ?? 'inf'}${s.step ? `, step ${s.step}` : ''}${s.unit ? ` ${s.unit}` : ''}`;
     else detail = 'true / false';
-    lines.push(`| \`${s.id}\` | ${s.label} | ${s.category} | ${s.type} | ${detail} |`);
+    lines.push(`| \`${s.id}\` | ${s.label} | ${s.category} | ${s.type} | ${detail} | ${s.description ?? ''} |`);
   }
   lines.push('');
   lines.push('Scaling methods (`*.colorMethod`, `*.sizeMethod`, `*.widthMethod`): `linear` for evenly spread values, `log` for positive skewed values, `symlog` for skewed values that include 0 or negatives (RWR probabilities, scores), `quantile` to rank-spread any distribution.');
@@ -44,13 +44,15 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
   if (catalog.actions.length > 0) {
     lines.push('## Actions (`menu.run` for view actions, `subset.action` for subset actions)');
     lines.push('');
-    lines.push('| id | label | category | effect |');
-    lines.push('|---|---|---|---|');
-    for (const a of catalog.actions) lines.push(`| \`${a.id}\` | ${a.label} | ${a.category} | ${a.effect} |`);
+    lines.push('| id | label | category | effect | what it does |');
+    lines.push('|---|---|---|---|---|');
+    for (const a of catalog.actions) lines.push(`| \`${a.id}\` | ${a.label} | ${a.category} | ${a.effect} | ${a.description ?? ''} |`);
     lines.push('');
   }
 
   lines.push('## Windows (`window.open`, or a `cmd:window.open?type=...` link)');
+  lines.push('');
+  lines.push('Scope (in brackets after the purpose): most analysis windows have a **G / S toggle** - `global` = all nodes of the graph, `subset` = the current selection (the highlighted nodes; the window follows selection changes unless `frozen`). `[global-or-subset]` windows take `useGlobal` (true = G, false = S; the default is in the option text), `[subset]` windows always show the selection (an empty selection gives an empty window; Enrichment compares the selection with the whole graph as background), `[global]` windows ignore the selection, `[n/a]` windows are tools. When the user asks about "my selection", open the window with `useGlobal=false`; for the whole graph with `useGlobal=true`.');
   lines.push('');
   lines.push('| type | label | purpose | options |');
   lines.push('|---|---|---|---|');
