@@ -17,6 +17,7 @@ import { SessionManager } from './sessions/SessionManager.js';
 import { Transcriber } from './transcribe/whisper.js';
 import {
   AppResultRequestSchema,
+  AsideRequestSchema,
   CreateSessionRequestSchema,
   FeedbackRequestSchema,
   PostMessageRequestSchema,
@@ -132,6 +133,19 @@ app.post('/sessions/:id/feedback', async (c) => {
   if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
   await sessions.postFeedback(id, parsed.data);
   return c.body(null, 202);
+});
+
+/** "What's up?": a side question answered from a fork of the session (no effect on the run). */
+app.post('/sessions/:id/aside', async (c) => {
+  const id = c.req.param('id');
+  if (!(await sessions.get(id))) return c.json({ error: 'not found' }, 404);
+  const parsed = AsideRequestSchema.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) return c.json({ error: parsed.error.message }, 400);
+  try {
+    return c.json(await sessions.aside(id, parsed.data.text));
+  } catch (e) {
+    return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+  }
 });
 
 app.post('/sessions/:id/interrupt', async (c) => {

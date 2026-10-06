@@ -23,6 +23,9 @@ export const config = {
   /** Static skills for every session (`agent-home/.claude/skills`), loaded via additionalDirectories. */
   agentHome: resolve(root, 'agent-home'),
   pythonBin: resolve(root, 'python/.venv/bin'),
+  /** A run without any SDK message for this long gets `status: waiting` events (every check), and is stopped after stallAbortMs. */
+  stallWarnMs: Math.max(10, Number(process.env.RUN_STALL_WARN_S ?? 90) || 90) * 1000,
+  stallAbortMs: Math.max(1, Number(process.env.RUN_STALL_ABORT_MIN ?? 10) || 10) * 60_000,
   /** Speech to text for the push-to-talk button (WHISPER_* in .env.example). */
   whisper: resolveWhisperConfig(process.env, root)
 };

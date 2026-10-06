@@ -78,6 +78,21 @@ normaliser.
 - Skills: `asdf10k-columns`, `asdf10k-app` (actions syntax), `asdf10k-reports` (front matter,
   roles, template).
 
+## Stalls, restarts and "What's up?"
+
+- A run whose model request never answers would spin forever. The stall watchdog
+  (`SessionManager.watchStall`) emits `status: waiting` (not persisted) when no SDK message arrived
+  for `RUN_STALL_WARN_S` (90 s) and, after `RUN_STALL_ABORT_MIN` (10 min), an `error` event,
+  interrupts the agent and closes it; the agent's exit ends the run.
+- `SIGTERM` / `SIGINT` (a restart) emit an error line into every running session and end its run
+  before exiting; on startup `init()` ends any run that is still open in a log (`endOpenRun`:
+  error + `run_end interrupted`), so windows never keep a spinner from a run whose process is
+  gone. `POST /sessions/:id/interrupt` does the same for a session without a live agent.
+- `POST /sessions/:id/aside { text? }` ("What's up?" in the window after 3 min): `src/agent/aside.ts`
+  forks the SDK session at its current transcript (`forkSession`, `maxTurns: 1`, no tools) and
+  asks what has been done / is running / is left; the answer is logged as an `aside` event under
+  the current run. Works while the main run is waiting, because it is a separate process.
+
 ## Voice input
 
 `POST /api/transcribe` (16 kHz mono 16-bit WAV body) returns `{ text, language, durationMs }` for

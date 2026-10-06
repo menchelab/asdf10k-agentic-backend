@@ -29,6 +29,10 @@ says `since your last message: ...` when the graph files, the selection or the l
 ## What renders inline in the chat
 
 - Markdown: headings, lists, **tables**, code, links. Keep answers short; the window is a panel.
+- Node sets: one `cmd:subset.set?ids=...` link per set, with a short name that works as a library
+  name. The app shows it as a chip with set (click), add (+) and save-to-library (book) built in -
+  never add separate "add to selection" or "save to library" links for the same nodes. `rwr.run`:
+  no `topN` unless the user asked for a subset; offer the top nodes as a chip instead.
 - **Images**: save under `out/` (e.g. `out/plots/degree.png`, matplotlib `savefig`) and write
   `![degree distribution](out/plots/degree.png)`. Relative paths are resolved by the app.
 - **Mermaid**: a fenced ```` ```mermaid ```` block renders as a diagram (flowcharts, simple pathway sketches).
@@ -130,10 +134,12 @@ cards, see above) and anything that changes the selection or the user's data (`s
 `columns.addFromTsv`) - offer those as buttons.
 
 - `rwr.run`: `{ seeds?: [ids] (default: the selection), name?, alpha? (0.7), beta? (0.3), edgeMetrics? (default flow), topN? }`.
-  Adds `rwr_<name>_rank_n`, `rwr_<name>_probability_n` and `rwr_<name>_flow_n` (edge). Then read
-  `input/nodes.tsv` for the values, or colour the graph: `settings.set` `nodes.colorAttribute` =
-  `rwr_<name>_probability_n` with `nodes.colorMethod` = `symlog` (or `quantile`); the edge flow goes
-  on `edges.widthAttribute` / `edges.colorAttribute`.
+  Adds the node columns `rwr_<name>_rank_n`, `rwr_<name>_probability_n` **and the edge column
+  `rwr_<name>_flow_n`** (the walk's flow per edge, in `input/edges.tsv`). Show both in one settings
+  card: `nodes.colorAttribute` = `rwr_<name>_probability_n` with `nodes.colorMethod` = `symlog` (or
+  `quantile`), and `edges.colorAttribute` and/or `edges.widthAttribute` = `rwr_<name>_flow_n` with
+  `edges.colorMethod` / `edges.widthMethod` = `symlog` or `quantile` - the edge flow is what makes
+  the walk's paths visible; do not leave it out.
 - `cluster.run`: `{ layout? ('default' = current positions), method? (louvain | leiden-simple), k? (15), resolution? (1), minClusterSize? (5), columnName? }`
   -> a `cluster_<n>_c` column; colour by it with `settings.set`.
 - Windows (cards or links, see above): the catalog skill lists every window with its purpose, its

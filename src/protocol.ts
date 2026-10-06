@@ -81,7 +81,10 @@ export const AgentEventSchema = z.discriminatedUnion('type', [
     claudeCodeVersion: z.string()
   }),
   /** Transient: the model is being called / a tool has been running for a while. Not persisted. */
-  z.object({ ...base, type: z.literal('status'), state: z.enum(['requesting', 'tool_running']), toolUseId: z.string().optional() }),
+  /** `waiting` (not persisted): no SDK message for `idleMs` while a run is active - the model has not answered yet. */
+  z.object({ ...base, type: z.literal('status'), state: z.enum(['requesting', 'tool_running', 'waiting']), toolUseId: z.string().optional(), idleMs: z.number().optional() }),
+  /** "What's up?": a side question answered from a fork of the session; shown under the run it was asked in. */
+  z.object({ ...base, type: z.literal('aside'), runId: z.string().nullable(), question: z.string(), answer: z.string() }),
   /** Streamed text; not persisted (the final `text` is). */
   z.object({ ...base, type: z.literal('text_delta'), ...inRun, blockId: z.string(), text: z.string() }),
   z.object({ ...base, type: z.literal('text'), ...inRun, blockId: z.string(), text: z.string() }),
@@ -257,6 +260,10 @@ export const AppResultRequestSchema = z.object({
   viz: z.record(z.string(), z.unknown()).optional()
 });
 export type AppResultRequest = z.infer<typeof AppResultRequestSchema>;
+
+/** POST /sessions/:id/aside: a side question ("What's up?") answered without touching the run. */
+export const AsideRequestSchema = z.object({ text: z.string().min(1).max(2000).optional() });
+export type AsideRequest = z.infer<typeof AsideRequestSchema>;
 
 /** POST /sessions/:id/feedback: one line the agent should know ("saved subset hubs_2 (12 nodes)"), optionally tied to a proposal card. */
 export const FeedbackRequestSchema = z.object({
