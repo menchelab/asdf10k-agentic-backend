@@ -25,9 +25,12 @@ overview, jobs, profiles, subagents): start with `../asdf10k/docs/agent-handover
 
 ## Rules
 
+- **This repo is public** (menchelab/asdf10k-agentic-backend, MIT) since 2026-10-16: no secrets,
+  hostnames, personal paths or account details in code, docs, fixtures or commit messages.
 - **Commit continuously**, one commit per verified step (typecheck + tests, and a browser check in
   the app when the change is visible there). No `Co-Authored-By` or other trailers. Milestones get an
-  annotated tag `phase-N` here (`phase-0` .. `phase-4` exist). Never push.
+  annotated tag `phase-N`; releases are `npm run release` (tags `vX.Y.Z`, GitHub release). Never push
+  (the user pushes and releases).
 - **A restart stops every running session's run** (shutdown emits an error line and ends the run in
   the log; the user has to send again). Do not restart while someone is mid-run unless asked; say
   so when you did.

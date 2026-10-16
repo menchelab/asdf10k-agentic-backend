@@ -10,11 +10,12 @@
     "typecheck": "tsc --noEmit",
     "spike:phase0": "tsx spike/phase0.ts",
     "spike:interrupt": "tsx spike/interrupt.ts",
-    "setup:python": "cd python && uv sync"
+    "setup:python": "cd python && uv sync",
+    "release": "node scripts/release.mjs"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "private": "true",
   "engines": {
@@ -32,5 +33,9 @@
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/menchelab/asdf10k-agentic-backend.git"
   }
 }

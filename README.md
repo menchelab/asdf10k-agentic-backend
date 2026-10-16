@@ -158,3 +158,15 @@ curl -L -O https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-
   skill say: app tools before Python, apply a setting when asked and suggest it with a settings
   card (```` ```asdf10k {"type":"settings",...} ````) otherwise, suggest windows as
   `cmd:window.open?type=...` buttons.
+
+## Releases
+
+`npm run release -- [patch|minor|major]` (default minor): typecheck and tests, version bump,
+`CHANGELOG.md` with every commit, commit `chore: release vX.Y.Z`, tag, push to
+[menchelab/asdf10k-agentic-backend](https://github.com/menchelab/asdf10k-agentic-backend) and a GitHub
+release with that version's changes. Pushes with the GitHub CLI login (`gh auth login`,
+`gh auth setup-git`); `--no-push` stops after the local tag. Milestone tags `phase-N` stay as they are.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
