@@ -2,6 +2,16 @@
 
 Every commit of every release, newest first.
 
+## 0.2.0 (2026-10-16)
+
+5 commits.
+
+- README: network setup also via server.py --backend (55d1f2c)
+- README: one-machine setup uses the deployment's server.py proxy (no agentBackendUrl); AGENT_HOST in the network row (11fdd00)
+- Listen settings AGENT_HOST / AGENT_PORT instead of HOST / PORT (conda sets HOST to a platform triple, the backend failed to start); invalid values warn and fall back to 127.0.0.1:8787; docs (179f933)
+- README: HTTPS rule precise (headsets via localhost are fine) (345ff7d)
+- README for people and agents who deploy it: security note, quick start, connecting the app (three setups, mixed content, SSE / upload proxy settings, nginx and Caddy), Claude access (login or API key), settings table, voice model, running as a service, troubleshooting; listen on 127.0.0.1 by default (HOST to open it), .env.example (58266d7)
+
 ## 0.1.0 (2026-10-16)
 
 26 commits.
