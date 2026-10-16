@@ -41,7 +41,7 @@ The app looks for the backend at `/agent-api` on its own origin, or at the URL i
 
 | Setup | Backend | App side |
 |---|---|---|
-| **Everything on one machine** (testing, a lab workstation) | `npm start` (127.0.0.1:8787) | `"agentBackendUrl": "http://127.0.0.1:8787/api"` in `data/<dataset>/config.json`, app served from the same machine (`python3 server.py`) |
+| **Everything on one machine** (testing, a lab workstation) | `npm start` (127.0.0.1:8787) | serve the deployment with its own `python3 server.py`: it forwards `/agent-api/` to `http://127.0.0.1:8787/api`; no config change |
 | **Behind the deployment's web server** (recommended for shared deployments, HTTPS) | `npm start` on the server (127.0.0.1:8787) | reverse-proxy `/agent-api/` to `http://127.0.0.1:8787/api/`; no config key needed |
 | **Backend on another machine in a trusted network** | `AGENT_HOST=0.0.0.0 npm start` | `"agentBackendUrl": "http://<backend-host>:8787/api"`; only works if the app is served over plain HTTP (see below) |
 
@@ -142,7 +142,7 @@ shows "the backend restarted - send your message again"); the sessions and their
 
 | Symptom | Cause |
 |---|---|
-| The window says "backend not reachable" | backend not running, wrong `agentBackendUrl` (must end in `/api`), proxy path wrong, or HTTPS page with HTTP backend |
+| The window says "backend not reachable" | backend not running, app not served by the deployment's `server.py` or a proxy, wrong `agentBackendUrl` (must end in `/api`), proxy path wrong, or HTTPS page with HTTP backend |
 | `/health` fine, but messages fail | Claude access: run `claude` as the backend's user and log in, or set `ANTHROPIC_API_KEY`; the backend log shows the error |
 | `"python": false` in `/health` | `npm run setup:python` not run (needs `uv`) |
 | No microphone button | `transcribe.available` false: `/health` names the missing piece (binary or model) |
