@@ -17,8 +17,7 @@ For developers and coding agents: `CLAUDE.md` (rules, commands, pitfalls) and `d
 
 ## Status
 
-Prototype, working end to end (tags `phase-0` .. `phase-4`, `prototype_agent` in the development
-repository): chat with progress, app awareness (graph upload, app context, skills, Python), results
+Prototype, working end to end (tags `phase-0` .. `phase-4`, `prototype_agent`): chat with progress, app awareness (graph upload, app context, skills, Python), results
 into the app (actions, columns, reports), the app's capabilities (generated catalog skill,
 `run_app_command`), voice input, stall handling. Single-user lab use: no authentication.
 
