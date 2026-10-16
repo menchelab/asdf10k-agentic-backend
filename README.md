@@ -48,8 +48,8 @@ The app looks for the backend at `/agent-api` on its own origin, or at the URL i
 Rules that bite:
 
 - **HTTPS pages cannot call an HTTP backend** (mixed content). A deployment served over HTTPS (any
-  public site, and every Quest headset setup) needs the backend behind HTTPS too - the reverse
-  proxy setup does this.
+  public site, or a Quest headset that opens it by network address instead of `localhost`) needs the
+  backend behind HTTPS too - the reverse proxy setup does this.
 - The backend answers with CORS (`*`) and `Cross-Origin-Resource-Policy: cross-origin`, so a
   different origin works when the scheme matches.
 - Server-sent events: the proxy must not buffer `/agent-api/sessions/*/events` (nginx:
