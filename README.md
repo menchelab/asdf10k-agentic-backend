@@ -1,19 +1,26 @@
 # asdf10k-agentic-backend
 
-Backend for the Agent window of [asdf10k](../asdf10k): a Claude agent (Claude Agent SDK, Claude
-Code as a library) that analyses the graph the app has loaded, streams its progress to the window
-and hands results back (images, tables, node columns, subsets, window suggestions).
+Backend for the **BigBrainz20k** agent window of the wwiznet / asdf10k 3D network explorer: a
+Claude agent (Claude Agent SDK, Claude Code as a library) that analyses the graph the app has
+loaded, streams its progress to the window and hands results back into the app - tables and
+figures, new node columns, node sets, reports, view changes and analysis windows, and runs the
+app's own random walk and clustering. Optional voice input (push-to-talk) via whisper.cpp.
 
-For agents (and anyone changing code): `CLAUDE.md` (rules, commands, pitfalls) and `docs/`
-(`architecture.md`, `sdk-notes.md`, `testing.md`). The plan, protocol decisions and phase status
-live in the app repo: `../asdf10k/docs/agent-window-plan.md`. Keep both updated with every change.
+The app itself is distributed as a built web app: **[menchelab/wwiznet_dist](https://github.com/menchelab/wwiznet_dist)**
+(setup, data format and agent guides in its `docs/for_agents/`). This backend runs next to such a
+deployment; the app reaches it at `/agent-api` (same-origin reverse proxy) or at the URL in the
+dataset's `config.json` key `agentBackendUrl`.
+
+For developers and coding agents: `CLAUDE.md` (rules, commands, pitfalls) and `docs/`
+(`architecture.md`, `sdk-notes.md`, `testing.md`). Some notes refer to the app's source repository
+(`../asdf10k`), which is private.
 
 ## Status
 
-Phases 0-4 done on 2026-10-06 (tags `phase-1` .. `phase-4`): spike, chat with progress, app
-awareness (graph upload, app context, skills, Python), results into the app (actions, columns,
-reports), and the app's capabilities (generated catalog skill, `run_app_command`). Details and
-findings: the plan.
+Prototype, working end to end (tags `phase-0` .. `phase-4`, `prototype_agent` in the development
+repository): chat with progress, app awareness (graph upload, app context, skills, Python), results
+into the app (actions, columns, reports), the app's capabilities (generated catalog skill,
+`run_app_command`), voice input, stall handling. Single-user lab use: no authentication.
 
 ## Requirements
 

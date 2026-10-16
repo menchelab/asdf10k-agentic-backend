@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "spike:phase0": "tsx spike/phase0.ts",
     "spike:interrupt": "tsx spike/interrupt.ts",
-    "setup:python": "cd python && uv sync"
+    "setup:python": "cd python && uv sync",
+    "publish:public": "bash scripts/publish-public.sh"
   },
   "keywords": [],
   "author": "",
