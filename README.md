@@ -43,7 +43,7 @@ The app looks for the backend at `/agent-api` on its own origin, or at the URL i
 |---|---|---|
 | **Everything on one machine** (testing, a lab workstation) | `npm start` (127.0.0.1:8787) | serve the deployment with its own `python3 server.py`: it forwards `/agent-api/` to `http://127.0.0.1:8787/api`; no config change |
 | **Behind the deployment's web server** (recommended for shared deployments, HTTPS) | `npm start` on the server (127.0.0.1:8787) | reverse-proxy `/agent-api/` to `http://127.0.0.1:8787/api/`; no config key needed |
-| **Backend on another machine in a trusted network** | `AGENT_HOST=0.0.0.0 npm start` | `"agentBackendUrl": "http://<backend-host>:8787/api"`; only works if the app is served over plain HTTP (see below) |
+| **Backend on another machine in a trusted network** | `AGENT_HOST=0.0.0.0 npm start` | `python3 server.py --backend http://<backend-host>:8787/api` (or a web server proxy); `agentBackendUrl` only if the app is served over plain HTTP (see below) |
 
 Rules that bite:
 
