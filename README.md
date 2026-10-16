@@ -43,7 +43,7 @@ The app looks for the backend at `/agent-api` on its own origin, or at the URL i
 |---|---|---|
 | **Everything on one machine** (testing, a lab workstation) | `npm start` (127.0.0.1:8787) | `"agentBackendUrl": "http://127.0.0.1:8787/api"` in `data/<dataset>/config.json`, app served from the same machine (`python3 server.py`) |
 | **Behind the deployment's web server** (recommended for shared deployments, HTTPS) | `npm start` on the server (127.0.0.1:8787) | reverse-proxy `/agent-api/` to `http://127.0.0.1:8787/api/`; no config key needed |
-| **Backend on another machine in a trusted network** | `HOST=0.0.0.0 npm start` | `"agentBackendUrl": "http://<backend-host>:8787/api"`; only works if the app is served over plain HTTP (see below) |
+| **Backend on another machine in a trusted network** | `AGENT_HOST=0.0.0.0 npm start` | `"agentBackendUrl": "http://<backend-host>:8787/api"`; only works if the app is served over plain HTTP (see below) |
 
 Rules that bite:
 
@@ -91,8 +91,8 @@ Copy `.env.example` to `.env`; everything is optional.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PORT` | `8787` | port |
-| `HOST` | `127.0.0.1` | interface; `0.0.0.0` = all (no authentication!) |
+| `AGENT_PORT` | `8787` | port |
+| `AGENT_HOST` | `127.0.0.1` | interface; `0.0.0.0` = all (no authentication!). Own names on purpose: `PORT` / `HOST` are set by conda and others and are ignored |
 | `SESSIONS_DIR` | `../asdf10k-agentic-sessions` | sessions, agent workspaces, event logs; must be **outside** this repo |
 | `IDLE_CLOSE_MIN` | `15` | close an idle session's agent process after this many minutes (resumed on the next message) |
 | `AGENT_MODEL` | `claude-sonnet-5-5` | model of the session agent; `claude-opus-5-5` for heavier research |

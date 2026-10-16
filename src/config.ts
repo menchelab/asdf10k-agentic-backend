@@ -13,11 +13,27 @@ try {
   // .env is optional
 }
 
+function parsePort(raw: string | undefined): number {
+  const n = Number(raw);
+  if (raw && (!Number.isInteger(n) || n < 1 || n > 65535)) console.warn(`AGENT_PORT="${raw}" is not a port; using 8787`);
+  return raw && Number.isInteger(n) && n > 0 && n < 65536 ? n : 8787;
+}
+
+/** An IPv4 / IPv6 address or a plain host name; anything else (e.g. a conda platform triple) falls back to 127.0.0.1. */
+function parseHost(raw: string | undefined): string {
+  const v = raw?.trim();
+  if (!v) return '127.0.0.1';
+  const ok = /^(\d{1,3}\.){3}\d{1,3}$/.test(v) || /^[0-9a-f:]+$/i.test(v) || v === 'localhost' || /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(v);
+  if (!ok) console.warn(`AGENT_HOST="${v}" is not an address; listening on 127.0.0.1`);
+  return ok ? v : '127.0.0.1';
+}
+
 export const config = {
   root,
-  port: Number(process.env.PORT ?? 8787),
-  /** Interface to listen on. Default 127.0.0.1: there is no authentication, so other machines only get in when HOST is set (0.0.0.0) on purpose or through a reverse proxy. */
-  host: process.env.HOST?.trim() || '127.0.0.1',
+  /** AGENT_PORT (own name: PORT / HOST are set by conda, PaaS hosts and shells for other purposes). */
+  port: parsePort(process.env.AGENT_PORT),
+  /** Interface to listen on. Default 127.0.0.1: there is no authentication, so other machines only get in when AGENT_HOST is set (0.0.0.0) on purpose or through a reverse proxy. */
+  host: parseHost(process.env.AGENT_HOST),
   /** Sessions live outside the repo: Claude Code reads .claude/ and CLAUDE.md from every parent of cwd. */
   sessionsDir: resolve(root, process.env.SESSIONS_DIR ?? '../asdf10k-agentic-sessions'),
   idleCloseMs: Number(process.env.IDLE_CLOSE_MIN ?? 15) * 60_000,

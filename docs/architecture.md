@@ -9,7 +9,7 @@ session's log; the window replays the log on attach and then follows the SSE str
 | File | Role |
 |---|---|
 | `src/server.ts` | Routes (below), SSE replay + live stream, gzip graph upload, workspace file serving, `/transcribe`, SIGTERM / SIGINT shutdown |
-| `src/config.ts` | `.env` (optional) -> `config`: port, host (default 127.0.0.1 - no authentication), sessions dir, idle close, fake mode, python bin, stall thresholds, whisper |
+| `src/config.ts` | `.env` (optional) -> `config`: port and host (`AGENT_PORT`, `AGENT_HOST`, default 127.0.0.1 - no authentication; invalid values fall back), sessions dir, idle close, fake mode, python bin, stall thresholds, whisper |
 | `src/protocol.ts` | zod schemas of everything crossing the wire: events, snapshot, catalog, requests. **Copied to the app** (`asdf10k/src/agent/protocol.ts`) |
 | `src/sessions/SessionManager.ts` | Session metas (`meta.json`), live sessions (`ensureLive`), `postMessage` (snapshot -> input files + `<app_context>`), graph upload, feedback, app requests, aside, interrupt, stall watchdog, idle close, startup repair |
 | `src/sessions/EventLog.ts` | `events.jsonl` + `.seq` sidecar, append / read / subscribe; the seq counter survives restarts (gap 1000) |

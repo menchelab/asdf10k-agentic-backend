@@ -11,7 +11,7 @@ overview, jobs, profiles, subagents): start with `../asdf10k/docs/agent-handover
 
 ## Commands
 
-- `npm run dev` - server with `tsx watch` on **127.0.0.1:8787** (`/api/...`; `HOST=0.0.0.0` opens it - there is no authentication). `npm start` = no watch: after a
+- `npm run dev` - server with `tsx watch` on **127.0.0.1:8787** (`/api/...`; `AGENT_HOST=0.0.0.0` opens it - there is no authentication). `npm start` = no watch: after a
   code change you must restart it yourself (`pkill -f "tsx src/server.ts"`, start again; the log
   of a manual start is wherever you redirected it, e.g. `/tmp/agent-backend.log`).
 - `npm run typecheck` (`tsc --noEmit`) and `npm test` (vitest, `test/`) - both clean, keep them at 0.
