@@ -1,47 +1,170 @@
 # asdf10k-agentic-backend
 
-Backend for the **BigBrainz20k** agent window of the wwiznet / asdf10k 3D network explorer: a
-Claude agent (Claude Agent SDK, Claude Code as a library) that analyses the graph the app has
-loaded, streams its progress to the window and hands results back into the app - tables and
-figures, new node columns, node sets, reports, view changes and analysis windows, and runs the
-app's own random walk and clustering. Optional voice input (push-to-talk) via whisper.cpp.
+Backend for **BigBrainz20k**, the AI agent window of the wwiznet / asdf10k 3D network explorer. A
+Claude agent (Claude Agent SDK, Claude Code as a library) analyses the graph the app has loaded -
+with Python (pandas, networkx, scipy) and the app's own tools - and hands results back into the
+app: answers with tables and figures, new node columns, node sets, reports, view changes, analysis
+windows, random walks and clustering. Optional voice input (push-to-talk) via whisper.cpp.
 
-The app itself is distributed as a built web app: **[menchelab/wwiznet_dist](https://github.com/menchelab/wwiznet_dist)**
-(setup, data format and agent guides in its `docs/for_agents/`). This backend runs next to such a
-deployment; the app reaches it at `/agent-api` (same-origin reverse proxy) or at the URL in the
-dataset's `config.json` key `agentBackendUrl`.
+The app is a static web app: **[menchelab/wwiznet_dist](https://github.com/menchelab/wwiznet_dist)**
+(setup and data guides in its `docs/for_agents/`). This backend runs next to a deployment of it;
+without the backend the app works fully, only the BigBrainz20k window says "backend not reachable".
 
-For developers and coding agents: `CLAUDE.md` (rules, commands, pitfalls) and `docs/`
-(`architecture.md`, `sdk-notes.md`, `testing.md`). Some notes refer to the app's source repository
-(`../asdf10k`), which is private.
+> **Security:** the backend has **no authentication**. Whoever can reach it can start agent sessions
+> that run code on this machine and use your Claude account. By default it listens on `127.0.0.1`
+> only. Open it to other machines only in a trusted network or behind a reverse proxy with access
+> control.
 
-## Status
+## Quick start
 
-Prototype, working end to end (tags `phase-0` .. `phase-4`, `prototype_agent`): chat with progress, app awareness (graph upload, app context, skills, Python), results
-into the app (actions, columns, reports), the app's capabilities (generated catalog skill,
-`run_app_command`), voice input, stall handling. Single-user lab use: no authentication.
-
-## Requirements
-
-- Node >= 20, `npm install`.
-- A `claude` CLI login on this machine (the SDK bundles its own Claude Code binary and uses the
-  login from the Keychain; `apiKeySource: 'none'` in the init message means the claude.ai login is
-  in use). The backend must run as a normal user: `bypassPermissions` refuses to start as root.
-- `uv` for the Python environment the agent uses: `npm run setup:python` (= `uv sync` in
-  `python/`, creates `python/.venv` with pandas, numpy, scipy, matplotlib, networkx, pyarrow). The
-  backend puts `python/.venv/bin` first on the agent's PATH; `/health` reports `python: true`.
-
-## Run
+On the machine that serves the app (or any machine the browser can reach):
 
 ```bash
-cp .env.example .env        # optional, defaults work
-npm run setup:python        # once
-npm run dev                 # tsx watch src/server.ts
-npm run typecheck
-npm test
+git clone https://github.com/menchelab/asdf10k-agentic-backend.git
+cd asdf10k-agentic-backend
+npm install                       # Node >= 20
+npm run setup:python              # the agent's Python environment (needs uv: https://docs.astral.sh/uv/)
+claude                            # once: log in to Claude Code, then /exit (see "Claude access")
+npm start                         # http://127.0.0.1:8787/api
+curl http://127.0.0.1:8787/api/health
 ```
 
-## What a session gets
+`/health` answers `{"ok":true, ..., "python":true, "transcribe":{...}}`. Then point the app at it
+(next section) and open the **BigBrainz20k** window from the app's "+" menu: a green dot next to the
+session list means connected. Try it without Claude first with `AGENT_FAKE=1 npm start` (a scripted
+agent, no model calls).
+
+## Connecting the app
+
+The app looks for the backend at `/agent-api` on its own origin, or at the URL in the dataset's
+`config.json` key `agentBackendUrl` (the backend's base URL **including `/api`**). Pick one:
+
+| Setup | Backend | App side |
+|---|---|---|
+| **Everything on one machine** (testing, a lab workstation) | `npm start` (127.0.0.1:8787) | `"agentBackendUrl": "http://127.0.0.1:8787/api"` in `data/<dataset>/config.json`, app served from the same machine (`python3 server.py`) |
+| **Behind the deployment's web server** (recommended for shared deployments, HTTPS) | `npm start` on the server (127.0.0.1:8787) | reverse-proxy `/agent-api/` to `http://127.0.0.1:8787/api/`; no config key needed |
+| **Backend on another machine in a trusted network** | `HOST=0.0.0.0 npm start` | `"agentBackendUrl": "http://<backend-host>:8787/api"`; only works if the app is served over plain HTTP (see below) |
+
+Rules that bite:
+
+- **HTTPS pages cannot call an HTTP backend** (mixed content). A deployment served over HTTPS (any
+  public site, and every Quest headset setup) needs the backend behind HTTPS too - the reverse
+  proxy setup does this.
+- The backend answers with CORS (`*`) and `Cross-Origin-Resource-Policy: cross-origin`, so a
+  different origin works when the scheme matches.
+- Server-sent events: the proxy must not buffer `/agent-api/sessions/*/events` (nginx:
+  `proxy_buffering off;`) and should allow long-lived connections.
+- Uploads: the app uploads the graph gzip-compressed; allow request bodies of at least 50 MB.
+
+nginx example (inside the deployment's `server { ... }`):
+
+```nginx
+location /agent-api/ {
+    proxy_pass http://127.0.0.1:8787/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_buffering off;
+    proxy_read_timeout 1h;
+    client_max_body_size 100m;
+}
+```
+
+Caddy: `handle_path /agent-api/* { rewrite * /api{uri}  reverse_proxy 127.0.0.1:8787 { flush_interval -1 } }`.
+
+## Claude access
+
+The agent runs Claude Code through the Claude Agent SDK, which is bundled (`npm install` brings the
+binary). It needs one of:
+
+- **A Claude Code login** of the user who runs the backend: install Claude Code
+  (`npm install -g @anthropic-ai/claude-code`), run `claude`, log in, `/exit`. The login is stored
+  for that user and used by the backend (subscription usage).
+- **An API key**: `ANTHROPIC_API_KEY=...` in the backend's environment (or `.env`); billed per token
+  on the Anthropic API account.
+
+The backend refuses to start as root (Claude Code's permission bypass does not allow it): run it as
+a normal user. Model and speed: `AGENT_MODEL` / `AGENT_EFFORT` (below).
+
+## Settings (`.env`)
+
+Copy `.env.example` to `.env`; everything is optional.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PORT` | `8787` | port |
+| `HOST` | `127.0.0.1` | interface; `0.0.0.0` = all (no authentication!) |
+| `SESSIONS_DIR` | `../asdf10k-agentic-sessions` | sessions, agent workspaces, event logs; must be **outside** this repo |
+| `IDLE_CLOSE_MIN` | `15` | close an idle session's agent process after this many minutes (resumed on the next message) |
+| `AGENT_MODEL` | `claude-sonnet-5-5` | model of the session agent; `claude-opus-5-5` for heavier research |
+| `AGENT_EFFORT` | `medium` | reasoning effort: `low`, `medium`, `high`, ... |
+| `ASIDE_MODEL` | `claude-haiku-4-5-20251001` | model of the "What's up?" side question |
+| `RUN_STALL_WARN_S` / `RUN_STALL_ABORT_MIN` | `90` / `10` | a run without any model output shows "waiting" after the first, is stopped after the second |
+| `AGENT_FAKE` | `0` | `1` = scripted fake agent (no Claude calls) |
+| `WHISPER_CPP_BIN`, `WHISPER_MODELS_DIR`, `WHISPER_MODEL`, `WHISPER_LANG`, `WHISPER_THREADS` | PATH, `../asdf10k-agentic-models`, best model, `auto`, `4` | voice input (below) |
+| `ANTHROPIC_API_KEY` | - | Claude access without a Claude Code login |
+
+## Voice input (optional)
+
+The push-to-talk button in the app appears when `/health` reports `transcribe.available`. Install
+whisper.cpp (`brew install whisper-cpp`, or build it so that `whisper-cli` is on PATH) and put a
+model into `../asdf10k-agentic-models/`:
+
+```bash
+mkdir -p ../asdf10k-agentic-models
+curl -L -o ../asdf10k-agentic-models/ggml-large-v3-turbo-q8_0.bin \
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin
+```
+
+`large-v3-turbo-q8_0` (874 MB) is accurate and fast on Apple Silicon and on GPUs; on a weak CPU-only
+machine use `ggml-small-q8_0.bin`.
+
+## Running it permanently
+
+`npm start` in the foreground is enough for a lab workstation. For a server, run it under a process
+manager as the user who has the Claude login, for example a systemd user service:
+
+```ini
+# ~/.config/systemd/user/asdf10k-agent.service
+[Unit]
+Description=asdf10k agentic backend
+[Service]
+WorkingDirectory=%h/asdf10k-agentic-backend
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+[Install]
+WantedBy=default.target
+```
+
+`systemctl --user enable --now asdf10k-agent`. A restart ends running agent turns (the window
+shows "the backend restarted - send your message again"); the sessions and their files stay.
+
+## Troubleshooting
+
+| Symptom | Cause |
+|---|---|
+| The window says "backend not reachable" | backend not running, wrong `agentBackendUrl` (must end in `/api`), proxy path wrong, or HTTPS page with HTTP backend |
+| `/health` fine, but messages fail | Claude access: run `claude` as the backend's user and log in, or set `ANTHROPIC_API_KEY`; the backend log shows the error |
+| `"python": false` in `/health` | `npm run setup:python` not run (needs `uv`) |
+| No microphone button | `transcribe.available` false: `/health` names the missing piece (binary or model) |
+| Answers never finish | see the backend log; the stall watchdog stops a hung run after `RUN_STALL_ABORT_MIN` |
+| Starts and exits immediately | running as root, or the port is in use |
+
+## Development
+
+```bash
+npm run dev                 # tsx watch
+npm run typecheck
+npm test
+npm run release -- minor    # version, changelog, tag, push, GitHub release (see Releases)
+```
+
+`CLAUDE.md` (rules, pitfalls) and `docs/` (`architecture.md`, `sdk-notes.md`, `testing.md`) are the
+place to start for code changes; some notes refer to the app's source repository (`../asdf10k`),
+which is private.
+
+## How it works
+
+### What a session gets
 
 `<SESSIONS_DIR>/<id>/workspace/` is the agent's cwd. `input/` holds what the app sent: `nodes.tsv`
 and `edges.tsv` (the app's whole graph with every column, re-uploaded when its hash changes),
@@ -55,7 +178,7 @@ Sessions (agent workspaces, event logs, proposals) live outside this repo, by de
 every parent directory of the agent's working directory, so a workspace inside this repo would pull
 in this repo's own notes.
 
-## Spikes (phase 0)
+### Spikes (phase 0)
 
 ```bash
 npm run spike:phase0        # streaming input, skills, MCP tool, task tools, Bash, resume
@@ -66,14 +189,14 @@ Each run writes every SDK message to `spike/fixtures/<run>*.jsonl` and a `*-find
 runs use the Claude login and take 30-60 s. The fixtures are the test data for the event
 normaliser.
 
-## Layout
+### Layout
 
 - `agent-home/.claude/skills/` - static skills loaded into every session via `additionalDirectories`
   (`home-skill` is the spike's test skill).
 - `spike/` - phase 0 scripts and fixtures.
 - `src/` - the server (phase 1).
 
-## Tools and actions (phase 3)
+### Tools and actions (phase 3)
 
 - `src/agent/appTools.ts`: the in-process MCP server `asdf10k` with `propose_node_columns`
   (validates a TSV against the uploaded graph: `src/agent/validate/columnsTsv.ts`, emits a
@@ -85,7 +208,7 @@ normaliser.
 - Skills: `asdf10k-columns`, `asdf10k-app` (actions syntax), `asdf10k-reports` (front matter,
   roles, template).
 
-## Model and speed
+### Model and speed
 
 `AGENT_MODEL` (default `claude-sonnet-5-5`) and `AGENT_EFFORT` (default `medium`) set the session
 agent's model and reasoning effort (`src/agent/agentOptions.ts`); the "What's up?" side query uses
@@ -95,7 +218,7 @@ medium is the fast default for app work, Opus at high the choice for research se
 profiles will set this per profile). Changing the model needs a backend restart (the live query is
 created with it; a resumed session keeps its history).
 
-## Stalls, restarts and "What's up?"
+### Stalls, restarts and "What's up?"
 
 - A run whose model request never answers would spin forever. The stall watchdog
   (`SessionManager.watchStall`) emits `status: waiting` (not persisted) when no SDK message arrived
@@ -110,7 +233,7 @@ created with it; a resumed session keeps its history).
   asks what has been done / is running / is left; the answer is logged as an `aside` event under
   the current run. Works while the main run is waiting, because it is a separate process.
 
-## Voice input
+### Voice input
 
 `POST /api/transcribe` (16 kHz mono 16-bit WAV body) returns `{ text, language, durationMs }` for
 the Agent window's push-to-talk button (`src/transcribe/whisper.ts`). It shells out to whisper.cpp's
@@ -131,7 +254,7 @@ mkdir -p ../asdf10k-agentic-models && cd ../asdf10k-agentic-models
 curl -L -O https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin
 ```
 
-## The app's capabilities (phase 4)
+### The app's capabilities (phase 4)
 
 - The app sends its **catalog** with a message when its hash changes (`PostMessageRequest.catalog`:
   ring menu settings with options, actions, windows with purpose / scope / options, commands with

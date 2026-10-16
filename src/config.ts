@@ -16,6 +16,8 @@ try {
 export const config = {
   root,
   port: Number(process.env.PORT ?? 8787),
+  /** Interface to listen on. Default 127.0.0.1: there is no authentication, so other machines only get in when HOST is set (0.0.0.0) on purpose or through a reverse proxy. */
+  host: process.env.HOST?.trim() || '127.0.0.1',
   /** Sessions live outside the repo: Claude Code reads .claude/ and CLAUDE.md from every parent of cwd. */
   sessionsDir: resolve(root, process.env.SESSIONS_DIR ?? '../asdf10k-agentic-sessions'),
   idleCloseMs: Number(process.env.IDLE_CLOSE_MIN ?? 15) * 60_000,

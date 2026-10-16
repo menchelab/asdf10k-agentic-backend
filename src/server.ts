@@ -244,8 +244,8 @@ app.get('/sessions/:id/files/*', async (c) => {
   });
 });
 
-const server = serve({ fetch: app.fetch, port: config.port }, (info) => {
-  console.log(`asdf10k-agentic-backend ${pkg.version} on http://localhost:${info.port}/api  (sdk ${sdkPkg.version}${config.fake ? ', FAKE agent' : ''}; sessions in ${config.sessionsDir})`);
+const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
+  console.log(`asdf10k-agentic-backend ${pkg.version} on http://${config.host}:${info.port}/api  (sdk ${sdkPkg.version}${config.fake ? ', FAKE agent' : ''}; sessions in ${config.sessionsDir})`);
 });
 
 const shutdown = (): void => {
