@@ -32,6 +32,7 @@ find "$CHECKOUT" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
 git archive HEAD | tar -x -C "$CHECKOUT"
 rm -f "$CHECKOUT/scripts/publish-public.sh"   # the publish step itself is not part of the public repo
 rmdir "$CHECKOUT/scripts" 2>/dev/null || true
+node -e 'const f=process.argv[1],fs=require("fs"),p=JSON.parse(fs.readFileSync(f,"utf8"));delete p.scripts["publish:public"];fs.writeFileSync(f,JSON.stringify(p,null,2)+"\n")' "$CHECKOUT/package.json"
 
 # scrub the recorded SDK messages
 for f in "$CHECKOUT"/spike/fixtures/*; do
