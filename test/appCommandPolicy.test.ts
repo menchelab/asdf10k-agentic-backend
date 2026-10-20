@@ -5,7 +5,6 @@ import type { AppCatalog } from '../src/protocol.js';
 const catalog: AppCatalog = {
   hash: 'h',
   settings: [],
-  actions: [],
   windows: [],
   commands: [
     { id: 'settings.set', label: 'Set a viz setting', description: '', effect: 'view', paramsSchema: {} },
@@ -17,6 +16,7 @@ const catalog: AppCatalog = {
   ]
 };
 
+// a protocol 1 catalog (no presentation): derived from effect and the card commands
 describe('checkAppCommand', () => {
   it('allows compute commands and camera / layout actions', () => {
     expect(checkAppCommand(catalog, 'nav.resetView')).toEqual({ ok: true, label: 'Reset view', effect: 'view' });
@@ -38,5 +38,20 @@ describe('checkAppCommand', () => {
   });
   it('needs a catalog', () => {
     expect(checkAppCommand(null, 'rwr.run').ok).toBe(false);
+  });
+  it('protocol 2: the catalog\'s presentation decides, not the effect', () => {
+    const v2: AppCatalog = {
+      hash: 'h2',
+      settings: [],
+      windows: [],
+      commands: [
+        { id: 'view.card', label: 'A card', description: '', effect: 'view', presentation: 'card', paramsSchema: {} },
+        { id: 'compute.button', label: 'Ask first', description: '', effect: 'compute', presentation: 'button', paramsSchema: {} },
+        { id: 'sel.direct', label: 'Harmless', description: '', effect: 'selection', presentation: 'direct', paramsSchema: {} }
+      ]
+    };
+    expect(checkAppCommand(v2, 'view.card').ok === false && (checkAppCommand(v2, 'view.card') as { error: string }).error).toMatch(/write it as a card/);
+    expect(checkAppCommand(v2, 'compute.button').ok).toBe(false);
+    expect(checkAppCommand(v2, 'sel.direct')).toEqual({ ok: true, label: 'Harmless', effect: 'selection' });
   });
 });

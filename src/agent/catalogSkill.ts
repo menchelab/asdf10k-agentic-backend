@@ -6,7 +6,11 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { AppCatalog } from '../protocol.js';
+import type { AppCatalog, CommandPresentation } from '../protocol.js';
+import { presentationOf } from './appCommandPolicy.js';
+
+/** The command heading's note on how the agent uses it (the catalog's `presentation`). */
+const PRESENTATION_TEXT: Record<CommandPresentation, string> = { direct: 'you run it', card: 'a card', button: 'a button for the user' };
 
 export const CATALOG_SKILL_NAME = 'asdf10k-app-catalog';
 
@@ -45,24 +49,19 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
     if (s.type === 'dropdown') detail = (s.options ?? []).map((o) => `\`${o}\``).join(', ');
     else if (s.type === 'number') detail = `${s.min ?? '-inf'} .. ${s.max ?? 'inf'}${s.step ? `, step ${s.step}` : ''}${s.unit ? ` ${s.unit}` : ''}`;
     else detail = 'true / false';
-    lines.push(`| \`${s.id}\` | ${s.label} | ${s.category} | ${s.type}${s.readOnly ? ' (read-only)' : ''} | ${detail} | ${s.description ?? ''} |`);
+    lines.push(`| \`${s.id}\` | ${s.label} | ${s.category} | ${s.type}${s.readOnly ? ' (read-only)' : ''}${s.scope === 'device' ? ' (this device)' : ''} | ${detail} | ${s.description ?? ''} |`);
   }
   lines.push('');
+  if (catalog.settings.some((s) => s.scope === 'device')) {
+    lines.push('**(this device)** settings change only the user\'s own device (render, bloom); in a multiplayer session the others keep theirs. Every other setting reaches everyone in the session.');
+    lines.push('');
+  }
   if (catalog.settings.some((s) => s.readOnly)) {
     lines.push('**Read-only settings** (marked above, the `highlight.*` ids): the **highlight mode** - how the current selection is marked in 3D (bigger nodes, glow, bloom, highlighted edges) and whether everything else fades (`highlight.fadeOthers` + `highlight.fadeOpacity` for nodes, `highlight.fadeEdges` + `highlight.fadeEdgesOpacity` for edges, `highlight.subsetEdgesOnly` = draw only the selection\'s edges, `highlight.edgeSubsetMode` = induced / incident; the user\'s isolate mode (i key) is the same with opacity 0) - stays with the user. `settings.set` refuses these ids and a settings card shows them as manual steps. When such a change would help, read the current values from the `viz:` line of the app context and tell the user what to change where: the Settings window (gear icon in the icon bar) › section "Highlight nodes" or "Edge highlighting" › the label from the table, with the value.');
     lines.push('');
   }
   lines.push('Scaling methods (`*.colorMethod`, `*.sizeMethod`, `*.widthMethod`): `linear` for evenly spread values, `log` for positive skewed values, `symlog` for skewed values that include 0 or negatives (RWR probabilities, scores), `quantile` to rank-spread any distribution.');
   lines.push('');
-
-  if (catalog.actions.length > 0) {
-    lines.push('## Ring menu actions');
-    lines.push('');
-    lines.push('| id | label | category | effect | what it does |');
-    lines.push('|---|---|---|---|---|');
-    for (const a of catalog.actions) lines.push(`| \`${a.id}\` | ${a.label} | ${a.category} | ${a.effect} | ${a.description ?? ''} |`);
-    lines.push('');
-  }
 
   lines.push('## Windows (`window` cards; `window.open` / `window.configure` / `window.close` commands)');
   lines.push('');
@@ -81,7 +80,7 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
   lines.push('Effects: `compute` commands and the camera / layout actions (`nav.*`, `layout.*`) may be run by you (run_app_command); view changes (settings, windows) are cards; `selection` commands (`subset.*`: set, add, expand by one hop, connect, common neighbours, prune leaves, isolate, clear, save to library) and `data` commands are offered to the user as buttons (`cmd:` links, chips, cards). Every action of the app is a command with its own id - there is no menu indirection.');
   lines.push('');
   for (const c of catalog.commands) {
-    lines.push(`### \`${c.id}\` - ${c.label} (${c.effect})`);
+    lines.push(`### \`${c.id}\` - ${c.label} (${c.effect}, ${PRESENTATION_TEXT[presentationOf(c)]})`);
     lines.push('');
     lines.push(c.description);
     lines.push('');

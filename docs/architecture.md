@@ -18,8 +18,8 @@ session's log; the window replays the log on attach and then follows the SSE str
 | `src/agent/EventNormalizer.ts` | SDK messages -> protocol events: runs, text blocks (deltas + final), tool steps with labels (`toolLabel`, `summarizeCommand`), todos, status, interrupt bookkeeping |
 | `src/agent/appContext.ts` | The `<app_context>` block put before every user message (dataset, columns, selection, library, open windows with ids, viz, what the user did since) |
 | `src/agent/appTools.ts` | In-process MCP server `asdf10k`: `propose_node_columns`, `publish_report`, `run_app_command` |
-| `src/agent/appCommandPolicy.ts` | Which commands `run_app_command` may run (`compute`, `nav.*` / `layout.*` actions); view changes are cards, selection / data are buttons |
-| `src/agent/catalogSkill.ts` | Renders the app's catalog (settings, actions, windows, commands) into the generated skill `asdf10k-app-catalog` in the session workspace |
+| `src/agent/appCommandPolicy.ts` | Which commands `run_app_command` may run: the catalog's `presentation` per command (protocol 2: `direct` runs, `card` = change card, `button` = offered to the user); derived from `effect` for a protocol 1 catalog |
+| `src/agent/catalogSkill.ts` | Renders the app's catalog (settings with scope, windows, commands with presentation) into the generated skill `asdf10k-app-catalog` in the session workspace |
 | `src/agent/systemPrompt.ts` | The prompt appended to Claude Code's preset: identity (BigBrainz20k), audience (biologists / bioinformaticians, their datasets), files, cards vs links, policy, answer length (result first, at most 6 sentences or 5 bullets plus one table / card, no preamble or closing) |
 | `src/agent/aside.ts` | "What's up?": a forked one-turn side query without tools |
 | `src/agent/graphFiles.ts` | Reads `input/nodes.tsv` ids and columns (validation, column diff after a command) |
@@ -80,8 +80,9 @@ session's log; the window replays the log on attach and then follows the SSE str
   event -> report card, Report / Reports windows in the app.
 - `run_app_command(command, params)`: `appCommandPolicy.checkAppCommand` against the catalog the
   app sent; allowed -> `app_request` event (not persisted, 120 s) -> the window runs it and posts
-  the result (new columns, viz) -> tool result text. Refused with a hint: view changes (cards),
-  selection / data commands (buttons).
+  the result (new columns, viz, the transaction ids `txIds`) -> tool result text. Refused with a
+  hint: `card` commands (view changes) and `button` commands (selection / data). The app refuses a
+  non-`direct` command in an `app_request` too.
 - Cards and links need no tool: the app parses ```` ```asdf10k ```` blocks and `cmd:` links in
   the markdown (`asdf10k/src/windows/agent/markdown.ts`, `changeCard.ts`, `subsetChip.ts`).
 

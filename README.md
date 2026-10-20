@@ -257,12 +257,14 @@ curl -L -O https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-
 ### The app's capabilities (phase 4)
 
 - The app sends its **catalog** with a message when its hash changes (`PostMessageRequest.catalog`:
-  ring menu settings with options, actions, windows with purpose / scope / options, commands with
-  JSON Schemas). `src/agent/catalogSkill.ts` renders it into the generated skill
+  ring menu settings with options and scope (`shared` / `device`), windows with purpose / scope /
+  options, commands with their `presentation` and JSON Schemas; protocol 2 since 2026-10-20 - the
+  empty `actions` list is gone). `src/agent/catalogSkill.ts` renders it into the generated skill
   `<workspace>/.claude/skills/asdf10k-app-catalog/SKILL.md` and the session reloads its skills; the
   catalog is kept in the session meta for the policy check.
 - `run_app_command` (`src/agent/appTools.ts`): the agent runs an app command. `src/agent/appCommandPolicy.ts`
-  allows `compute` (`rwr.run`, `cluster.run`) and the camera / layout actions (`nav.*`, `layout.*`); the view changes `settings.set`,
+  allows the commands whose catalog `presentation` is `direct` (`compute`: `rwr.run`, `cluster.run`; the camera / layout
+  actions `nav.*`, `layout.*`); the `card` commands `settings.set`,
   `window.open`, `window.configure`, `window.close` are refused with a hint to write a card (the
   app renders `asdf10k` blocks and `cmd:` links to them as change cards with Revert; blocks apply
   themselves when the user's auto-accept is on); `selection` and `data` commands are refused with

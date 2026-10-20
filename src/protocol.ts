@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 export const RunStatusSchema = z.enum(['success', 'max_turns', 'interrupted', 'error']);
 export type RunStatus = z.infer<typeof RunStatusSchema>;
@@ -216,11 +216,11 @@ export const CatalogSettingSchema = z.object({
   /** One line on what the setting does (hand-written notes in AppCatalog.ts). */
   description: z.string().optional(),
   /** The agent may read but not change it (settings.set refuses it); it tells the user what to change where. */
-  readOnly: z.boolean().optional()
+  readOnly: z.boolean().optional(),
+  /** shared = a change reaches everyone in a multiplayer session; device = this device only (bloom, render). Protocol 2. */
+  scope: z.enum(['shared', 'device']).optional()
 });
 export type CatalogSetting = z.infer<typeof CatalogSettingSchema>;
-export const CatalogActionSchema = z.object({ id: z.string(), label: z.string(), category: z.string(), effect: z.enum(['view', 'selection']), description: z.string().optional() });
-export type CatalogAction = z.infer<typeof CatalogActionSchema>;
 export const CatalogWindowSchema = z.object({
   type: z.string(),
   label: z.string(),
@@ -228,13 +228,20 @@ export const CatalogWindowSchema = z.object({
   options: z.array(z.object({ key: z.string(), kind: z.string(), required: z.boolean().optional(), values: z.array(z.string()).optional(), description: z.string().optional() })).optional()
 });
 export type CatalogWindow = z.infer<typeof CatalogWindowSchema>;
-export const CatalogCommandSchema = z.object({ id: z.string(), label: z.string(), description: z.string(), effect: z.string(), paramsSchema: z.record(z.string(), z.unknown()) });
+/**
+ * How the agent uses a command (protocol 2; from the app's command registry): `direct` = it runs it
+ * itself (run_app_command), `card` = a view change it writes as a change card (settings / window
+ * blocks), `button` = it offers it to the user as a button (selection, data). Missing = protocol 1
+ * (derive it from `effect`).
+ */
+export const CommandPresentationSchema = z.enum(['direct', 'card', 'button']);
+export type CommandPresentation = z.infer<typeof CommandPresentationSchema>;
+export const CatalogCommandSchema = z.object({ id: z.string(), label: z.string(), description: z.string(), effect: z.string(), presentation: CommandPresentationSchema.optional(), paramsSchema: z.record(z.string(), z.unknown()) });
 export type CatalogCommand = z.infer<typeof CatalogCommandSchema>;
 export const AppCatalogSchema = z.object({
   /** Hash of the structure (ids, options), not of current values. */
   hash: z.string(),
   settings: z.array(CatalogSettingSchema),
-  actions: z.array(CatalogActionSchema),
   windows: z.array(CatalogWindowSchema),
   commands: z.array(CatalogCommandSchema)
 });
@@ -257,7 +264,9 @@ export const AppResultRequestSchema = z.object({
   /** Set when the app re-uploaded the graph after the command (new columns). */
   graphHash: z.string().optional(),
   /** Viz settings after the command. */
-  viz: z.record(z.string(), z.unknown()).optional()
+  viz: z.record(z.string(), z.unknown()).optional(),
+  /** The store transactions the command committed (its synchronous part; protocol 2). */
+  txIds: z.array(z.number()).optional()
 });
 export type AppResultRequest = z.infer<typeof AppResultRequestSchema>;
 

@@ -68,9 +68,12 @@ overview, jobs, profiles, subagents): start with `../asdf10k/docs/agent-handover
   follow-up turn without a user message, in-process MCP tools need `alwaysLoad: true`,
   `strictMcpConfig` + `disableClaudeAiConnectors` keep the account's connectors out,
   `bypassPermissions` refuses to run as root.
-- **Policy, not trust**: `run_app_command` lets the agent run `compute` commands and `menu.run`;
-  view changes (`settings.set`, `window.*`) must be cards, `selection` / `data` commands buttons
-  (`src/agent/appCommandPolicy.ts`). The app enforces its own rules too (read-only `highlight.*`).
+- **Policy, not trust**: `run_app_command` runs only commands whose catalog `presentation` is
+  `direct` (protocol 2, set by the app's command registry: `view` / `compute` commands); `card`
+  commands (`settings.set`, `window.*`) must be cards, `button` commands (selection, data) buttons
+  (`src/agent/appCommandPolicy.ts`; a protocol 1 catalog without `presentation` is derived from
+  `effect` as before). The app checks an `app_request` the same way and enforces its own rules
+  (read-only `highlight.*`).
 - **Stall watchdog**: no SDK message for `RUN_STALL_WARN_S` -> `status: waiting`; after
   `RUN_STALL_ABORT_MIN` the run is stopped. On startup `init()` ends runs left open in any log.
   If a window shows a spinner that never ends, the log has a `run_start` without `run_end`.
