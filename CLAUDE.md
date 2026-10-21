@@ -11,7 +11,8 @@ overview, jobs, profiles, subagents): start with `../asdf10k/docs/agent-handover
 
 **"Start the backend for <app URL>"** (a user, not a developer): follow the skill
 `.claude/skills/start-backend/SKILL.md` - it starts the server and hands over the `?agent=` links
-and the browser flag other devices need.
+and the one-time certificate step other devices need (HTTPS on 8788 after `npm run cert`, mkcert;
+the Chrome insecure-origin flag only without a certificate).
 
 ## Commands
 

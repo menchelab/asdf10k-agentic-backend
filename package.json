@@ -11,6 +11,7 @@
     "spike:phase0": "tsx spike/phase0.ts",
     "spike:interrupt": "tsx spike/interrupt.ts",
     "setup:python": "cd python && uv sync",
+    "cert": "node scripts/cert.mjs",
     "release": "node scripts/release.mjs"
   },
   "keywords": [],

@@ -33,4 +33,12 @@ describe('connectHints', () => {
     const lines = connectHints({ host: '0.0.0.0', port: 8787, appUrl: 'https://app.example.org/', interfaces });
     expect(lines[1]).toContain('https://app.example.org/?agent=http://192.168.1.50:8787/api');
   });
+
+  it('with the HTTPS port: https links for other devices and the accept-once step instead of the flag', () => {
+    const lines = connectHints({ host: '0.0.0.0', port: 8787, httpsPort: 8788, appUrl: 'https://app.example.org', interfaces }).join('\n');
+    expect(lines).toContain('?agent=http://localhost:8787/api');
+    expect(lines).toContain('https://app.example.org/?agent=https://192.168.1.50:8788/api');
+    expect(lines).toContain('https://192.168.1.50:8788/api/health');
+    expect(lines).not.toContain('unsafely-treat-insecure-origin-as-secure');
+  });
 });

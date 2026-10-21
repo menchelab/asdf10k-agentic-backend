@@ -4,3 +4,4 @@ dist/
 python/.venv/
 .DS_Store
 .release-notes.tmp.md
+certs/

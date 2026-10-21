@@ -1,6 +1,6 @@
 ---
 name: start-backend
-description: Start this agent backend for a hosted asdf10k app (e.g. "start the backend for https://app.example.org") and hand the user the ready-to-open app links with ?agent=, including the links for headsets / other devices on the same network and the Chrome flag they need. Use when the user asks to start, run or connect this backend for an app URL, a deployment, headsets, a Quest or a multiplayer session.
+description: Start this agent backend for a hosted asdf10k app (e.g. "start the backend for https://app.example.org") and hand the user the ready-to-open app links with ?agent=, including the links for headsets / other devices on the same network and the one-time certificate step they need (HTTPS via mkcert). Use when the user asks to start, run or connect this backend for an app URL, a deployment, headsets, a Quest or a multiplayer session.
 ---
 
 # Start the backend for a hosted app
@@ -25,6 +25,12 @@ Goal: the user (and possibly headsets or other devices on the same Wi-Fi) opens 
   Claude calls - say so plainly.
 - Port free: `lsof -iTCP:8787 -sTCP:LISTEN` (macOS / Linux). Already running from this repo: reuse
   it if its host setting fits, else stop it and restart.
+- **Other devices only:** a certificate for HTTPS (headsets cannot call `http://` from an HTTPS
+  app). `certs/cert.pem` missing, or the log later warns that it does not cover the current LAN
+  address: run `npm run cert` (needs `mkcert`: `brew install mkcert` on macOS; `mkcert -install`
+  inside the script may ask for the password once - tell the user). Without mkcert and without
+  a way to install it, fall back to the Chrome flag (step 4.2, "No certificate").
+- Port free: also `lsof -iTCP:8788 -sTCP:LISTEN` when HTTPS is on.
 - Optional: `npm run setup:python` once (the agent's Python tools); `/health` reports `python`.
 
 ## 3. Start it
@@ -45,21 +51,24 @@ unless the log is unavailable. The LAN address can be checked with `ipconfig get
 
 1. **This computer:** `<app URL>/?agent=http://localhost:8787/api` - works from an HTTPS app;
    Chrome may ask once to allow local network access: allow it.
-2. **Other devices** (only with `0.0.0.0`): `<app URL>/?agent=http://<lan-ip>:8787/api`, and on each
-   device's browser, once:
-   - open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`
-   - enter `http://<lan-ip>:8787`, set the flag to Enabled, relaunch the browser.
-   This lets the HTTPS app call the laptop's plain-HTTP backend (otherwise the browser blocks it as
-   mixed content). Chromium-based browsers (Chrome, Edge, Quest Browser) have the flag; Safari does
-   not. On a Quest, type the URL in Quest Browser's address bar.
-3. **Check from the other device:** opening `http://<lan-ip>:8787/api/health` there must show JSON.
-   If not: the computer's firewall (macOS asks to allow incoming connections for `node`: allow), or
-   the Wi-Fi isolates devices (common on guest / venue networks: use your own router or hotspot).
-4. **Keep the address fixed:** the flag and the links contain the IP. A new network or DHCP lease
-   means a new IP: redo the flag entry and use the new links (a DHCP reservation or your own router
-   avoids this).
+2. **Other devices** (only with `0.0.0.0`): `<app URL>/?agent=https://<lan-ip>:8788/api` (the log's
+   "Other devices" line), and on each device's browser, once:
+   - open `https://<lan-ip>:8788/api/health`; the browser warns (the certificate is mkcert's,
+     trusted on this laptop only): **Advanced -> Proceed**; JSON appears.
+   - then open the app link. On a Quest, type the URL in Quest Browser's address bar.
+   The exception lasts a while; when the Agent window later says "not reachable", repeat this.
+   **No certificate** (mkcert unavailable): `<app URL>/?agent=http://<lan-ip>:8787/api` plus, once
+   per browser, `chrome://flags/#unsafely-treat-insecure-origin-as-secure` -> `http://<lan-ip>:8787`,
+   Enabled, relaunch (Chromium browsers only; Safari has no such flag).
+3. **Check from the other device:** the health page from step 2 must show JSON. If it does not
+   load at all: the computer's firewall (macOS asks to allow incoming connections for `node`:
+   allow), or the Wi-Fi isolates devices (common on guest / venue networks: use your own router or
+   hotspot). A certificate error naming the address: run `npm run cert` again and restart.
+4. **Keep the address fixed:** the links and the certificate contain the IP. A new network or DHCP
+   lease means a new IP: `npm run cert`, restart, accept again, new links (a DHCP reservation or
+   your own router avoids this).
 5. **Multiplayer:** in a session, the Agent window's "Share live" (on by default) shows the agent
-   session to the others read-only; each of them needs the link and flag from step 2.
+   session to the others read-only; each of them needs the link and the certificate step from step 2.
 6. **Security:** no authentication - anyone on the network can use this backend (and the Claude
    account behind it). Only on networks you trust; stop it afterwards.
 

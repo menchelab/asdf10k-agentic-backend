@@ -5,6 +5,7 @@
  */
 
 import { serve } from '@hono/node-server';
+import { createServer as createHttpsServer } from 'node:https';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { streamSSE } from 'hono/streaming';
@@ -16,7 +17,8 @@ import { config } from './config.js';
 import { SessionManager } from './sessions/SessionManager.js';
 import { Transcriber } from './transcribe/whisper.js';
 import { networkInterfaces } from 'node:os';
-import { connectHints } from './connectHints.js';
+import { connectHints, lanAddresses } from './connectHints.js';
+import { loadTls, uncoveredAddresses } from './tls.js';
 import {
   AppResultRequestSchema,
   AsideRequestSchema,
@@ -246,14 +248,35 @@ app.get('/sessions/:id/files/*', async (c) => {
   });
 });
 
+// HTTPS next to HTTP when certs/ has a certificate (npm run cert; src/tls.ts)
+let tls: ReturnType<typeof loadTls> = null;
+try {
+  tls = loadTls(config.tlsCert, config.tlsKey);
+} catch (e) {
+  console.warn(`HTTPS off: ${config.tlsCert} is not a usable certificate (${e instanceof Error ? e.message : String(e)})`);
+}
+
 const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
   console.log(`asdf10k-agentic-backend ${pkg.version} on http://${config.host}:${info.port}/api  (sdk ${sdkPkg.version}${config.fake ? ', FAKE agent' : ''}; sessions in ${config.sessionsDir})`);
-  for (const line of connectHints({ host: config.host, port: info.port, appUrl: config.appUrl, interfaces: networkInterfaces() })) console.log(line);
+  if (!tls) {
+    for (const line of connectHints({ host: config.host, port: info.port, appUrl: config.appUrl, interfaces: networkInterfaces() })) console.log(line);
+  }
 });
+
+const httpsServer = tls
+  ? serve({ fetch: app.fetch, port: config.httpsPort, hostname: config.host, createServer: createHttpsServer, serverOptions: { cert: tls.cert, key: tls.key } }, (info) => {
+      console.log(`HTTPS on https://${config.host}:${info.port}/api  (${config.tlsCert})`);
+      const interfaces = networkInterfaces();
+      for (const line of connectHints({ host: config.host, port: config.port, httpsPort: info.port, appUrl: config.appUrl, interfaces })) console.log(line);
+      const missing = uncoveredAddresses(tls!.names, lanAddresses(interfaces));
+      if (missing.length && config.host !== '127.0.0.1') console.warn(`  The certificate does not cover ${missing.join(', ')} (another network?): run \`npm run cert\` again and restart.`);
+    })
+  : null;
 
 const shutdown = (): void => {
   sessions.closeAll();
   server.close();
+  httpsServer?.close();
   process.exit(0);
 };
 process.on('SIGINT', shutdown);

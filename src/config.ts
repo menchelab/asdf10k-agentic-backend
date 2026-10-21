@@ -13,10 +13,10 @@ try {
   // .env is optional
 }
 
-function parsePort(raw: string | undefined): number {
+function parsePort(raw: string | undefined, fallback = 8787, name = 'AGENT_PORT'): number {
   const n = Number(raw);
-  if (raw && (!Number.isInteger(n) || n < 1 || n > 65535)) console.warn(`AGENT_PORT="${raw}" is not a port; using 8787`);
-  return raw && Number.isInteger(n) && n > 0 && n < 65536 ? n : 8787;
+  if (raw && (!Number.isInteger(n) || n < 1 || n > 65535)) console.warn(`${name}="${raw}" is not a port; using ${fallback}`);
+  return raw && Number.isInteger(n) && n > 0 && n < 65536 ? n : fallback;
 }
 
 /** An IPv4 / IPv6 address or a plain host name; anything else (e.g. a conda platform triple) falls back to 127.0.0.1. */
@@ -34,6 +34,11 @@ export const config = {
   port: parsePort(process.env.AGENT_PORT),
   /** Interface to listen on. Default 127.0.0.1: there is no authentication, so other machines only get in when AGENT_HOST is set (0.0.0.0) on purpose or through a reverse proxy. */
   host: parseHost(process.env.AGENT_HOST),
+  /** HTTPS port (AGENT_HTTPS_PORT, default 8788), used when certs/ has a certificate (`npm run cert`, src/tls.ts). */
+  httpsPort: parsePort(process.env.AGENT_HTTPS_PORT, 8788, 'AGENT_HTTPS_PORT'),
+  /** Certificate and key for the HTTPS port (AGENT_TLS_CERT / AGENT_TLS_KEY; default certs/cert.pem, certs/key.pem). */
+  tlsCert: resolve(root, process.env.AGENT_TLS_CERT ?? 'certs/cert.pem'),
+  tlsKey: resolve(root, process.env.AGENT_TLS_KEY ?? 'certs/key.pem'),
   /** AGENT_APP_URL (optional): the app's address, so the start-up hints print full links (src/connectHints.ts). */
   appUrl: process.env.AGENT_APP_URL?.trim() || undefined,
   /** Sessions live outside the repo: Claude Code reads .claude/ and CLAUDE.md from every parent of cwd. */

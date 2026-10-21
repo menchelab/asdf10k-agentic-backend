@@ -49,7 +49,7 @@ explains the browser setup. Pick one:
 | **Everything on one machine** (testing, a lab workstation) | `npm start` (127.0.0.1:8787) | serve the deployment with its own `python3 server.py`: it forwards `/agent-api/` to `http://127.0.0.1:8787/api`; no config change |
 | **Behind the deployment's web server** (recommended for shared deployments, HTTPS) | `npm start` on the server (127.0.0.1:8787) | reverse-proxy `/agent-api/` to `http://127.0.0.1:8787/api/`; no config key needed |
 | **Your own laptop, hosted HTTPS app** (e.g. at an event; no server access needed) | `npm start` on the laptop | open the app with `?agent=http://localhost:8787/api` - browsers allow an HTTPS page to call `localhost` (Chrome may ask once for local network access) |
-| **Headsets / other devices use your laptop's backend** (hosted HTTPS app, same Wi-Fi) | `AGENT_HOST=0.0.0.0 npm start` on the laptop; give it a fixed address | each device opens the app with `?agent=http://<laptop-ip>:8787/api` (the start-up log prints it) and, once per browser, allows that origin: `chrome://flags/#unsafely-treat-insecure-origin-as-secure` -> `http://<laptop-ip>:8787`, enable, relaunch. In a multiplayer session the others can watch your agent session live ("Share live"), each needing this setup |
+| **Headsets / other devices use your laptop's backend** (hosted HTTPS app, same Wi-Fi) | once: `npm run cert` (mkcert: a certificate for this machine's name and LAN addresses; again after a network change), then `AGENT_HOST=0.0.0.0 npm start` - HTTP on 8787, HTTPS on 8788; give the laptop a fixed address | each device opens the app with `?agent=https://<laptop-ip>:8788/api` (the start-up log prints it) and, once per browser, accepts the certificate: open `https://<laptop-ip>:8788/api/health`, Advanced -> Proceed. In a multiplayer session the others can watch your agent session live ("Share live"), each needing this setup. Without a certificate: the Chrome flag below |
 | **Backend on another machine in a trusted network** | `AGENT_HOST=0.0.0.0 npm start` | `python3 server.py --backend http://<backend-host>:8787/api` (or a web server proxy); `agentBackendUrl` only if the app is served over plain HTTP (see below) |
 
 Rules that bite:
@@ -58,7 +58,15 @@ Rules that bite:
   public site, or a Quest headset that opens it by network address instead of `localhost`) needs the
   backend behind HTTPS too - the reverse proxy setup does this. Two exceptions: `http://localhost`
   (the browser treats it as secure), and an origin allowed in the browser flag
-  `chrome://flags/#unsafely-treat-insecure-origin-as-secure` (the laptop rows above).
+  `chrome://flags/#unsafely-treat-insecure-origin-as-secure` (enter `http://<laptop-ip>:8787`,
+  enable, relaunch; the fallback when the laptop has no certificate). With `npm run cert` the
+  backend serves HTTPS itself (port 8788, `src/tls.ts`) and no flag is needed.
+- **The certificate is accepted per browser, not trusted.** mkcert's CA is installed on the laptop
+  (`mkcert -install`, part of `npm run cert`), so the laptop's own browsers trust it; a headset
+  shows a warning once and keeps the exception (Chrome forgets it after a while or when site data
+  is cleared: the Agent window then says "not reachable" - open `/api/health` again and proceed).
+  The certificate names the laptop's addresses at the time of `npm run cert`; on another network
+  the start-up log warns and the browser rejects it: run `npm run cert` again and restart.
 - The backend answers with CORS (`*`) and `Cross-Origin-Resource-Policy: cross-origin`, so a
   different origin works when the scheme matches.
 - Server-sent events: the proxy must not buffer `/agent-api/sessions/*/events` (nginx:
@@ -102,6 +110,8 @@ Copy `.env.example` to `.env`; everything is optional.
 |---|---|---|
 | `AGENT_PORT` | `8787` | port |
 | `AGENT_HOST` | `127.0.0.1` | interface; `0.0.0.0` = all (no authentication!). Own names on purpose: `PORT` / `HOST` are set by conda and others and are ignored |
+| `AGENT_HTTPS_PORT` | `8788` | HTTPS port, served when the certificate files exist (`npm run cert`) |
+| `AGENT_TLS_CERT` / `AGENT_TLS_KEY` | `certs/cert.pem` / `certs/key.pem` | certificate and key for the HTTPS port (git-ignored) |
 | `AGENT_APP_URL` | - | the app's address (e.g. `https://app.example.org`): the start-up log then prints full links with `?agent=` |
 | `SESSIONS_DIR` | `../asdf10k-agentic-sessions` | sessions, agent workspaces, event logs; must be **outside** this repo |
 | `IDLE_CLOSE_MIN` | `15` | close an idle session's agent process after this many minutes (resumed on the next message) |
@@ -157,7 +167,8 @@ shows "the backend restarted - send your message again"); the sessions and their
 | `"python": false` in `/health` | `npm run setup:python` not run (needs `uv`) |
 | No microphone button | `transcribe.available` false: `/health` names the missing piece (binary or model) |
 | Answers never finish | see the backend log; the stall watchdog stops a hung run after `RUN_STALL_ABORT_MIN` |
-| Starts and exits immediately | running as root, or the port is in use |
+| Starts and exits immediately | running as root, or the port (8787 or the HTTPS 8788) is in use |
+| Headset: "not reachable" with `https://<ip>:8788` | the certificate was not accepted in that browser yet (open `/api/health`, Advanced -> Proceed), or it does not name the current IP (log warning: `npm run cert`, restart) |
 
 ## Development
 
