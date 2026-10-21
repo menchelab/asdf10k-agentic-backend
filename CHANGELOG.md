@@ -2,6 +2,12 @@
 
 Every commit of every release, newest first.
 
+## 0.5.0 (2026-10-21)
+
+0 commits.
+
+
+
 ## 0.4.0 (2026-10-21)
 
 2 commits.
