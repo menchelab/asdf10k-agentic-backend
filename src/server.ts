@@ -15,6 +15,8 @@ import { gunzipSync } from 'node:zlib';
 import { config } from './config.js';
 import { SessionManager } from './sessions/SessionManager.js';
 import { Transcriber } from './transcribe/whisper.js';
+import { networkInterfaces } from 'node:os';
+import { connectHints } from './connectHints.js';
 import {
   AppResultRequestSchema,
   AsideRequestSchema,
@@ -246,6 +248,7 @@ app.get('/sessions/:id/files/*', async (c) => {
 
 const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
   console.log(`asdf10k-agentic-backend ${pkg.version} on http://${config.host}:${info.port}/api  (sdk ${sdkPkg.version}${config.fake ? ', FAKE agent' : ''}; sessions in ${config.sessionsDir})`);
+  for (const line of connectHints({ host: config.host, port: info.port, appUrl: config.appUrl, interfaces: networkInterfaces() })) console.log(line);
 });
 
 const shutdown = (): void => {

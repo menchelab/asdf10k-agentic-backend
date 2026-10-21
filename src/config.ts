@@ -34,6 +34,8 @@ export const config = {
   port: parsePort(process.env.AGENT_PORT),
   /** Interface to listen on. Default 127.0.0.1: there is no authentication, so other machines only get in when AGENT_HOST is set (0.0.0.0) on purpose or through a reverse proxy. */
   host: parseHost(process.env.AGENT_HOST),
+  /** AGENT_APP_URL (optional): the app's address, so the start-up hints print full links (src/connectHints.ts). */
+  appUrl: process.env.AGENT_APP_URL?.trim() || undefined,
   /** Sessions live outside the repo: Claude Code reads .claude/ and CLAUDE.md from every parent of cwd. */
   sessionsDir: resolve(root, process.env.SESSIONS_DIR ?? '../asdf10k-agentic-sessions'),
   idleCloseMs: Number(process.env.IDLE_CLOSE_MIN ?? 15) * 60_000,

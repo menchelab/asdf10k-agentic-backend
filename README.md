@@ -37,19 +37,28 @@ agent, no model calls).
 ## Connecting the app
 
 The app looks for the backend at `/agent-api` on its own origin, or at the URL in the dataset's
-`config.json` key `agentBackendUrl` (the backend's base URL **including `/api`**). Pick one:
+`config.json` key `agentBackendUrl` (the backend's base URL **including `/api`**). The page URL
+parameter `?agent=<backend URL>/api` overrides both, without touching the deployment. On start the
+backend prints the `?agent=` URLs to use (with this machine's network addresses when
+`AGENT_HOST=0.0.0.0`; `AGENT_APP_URL` makes them full links). With Claude Code in this folder, saying
+"start the backend for https://your-app" runs the `start-backend` skill, which does all of this and
+explains the browser setup. Pick one:
 
 | Setup | Backend | App side |
 |---|---|---|
 | **Everything on one machine** (testing, a lab workstation) | `npm start` (127.0.0.1:8787) | serve the deployment with its own `python3 server.py`: it forwards `/agent-api/` to `http://127.0.0.1:8787/api`; no config change |
 | **Behind the deployment's web server** (recommended for shared deployments, HTTPS) | `npm start` on the server (127.0.0.1:8787) | reverse-proxy `/agent-api/` to `http://127.0.0.1:8787/api/`; no config key needed |
+| **Your own laptop, hosted HTTPS app** (e.g. at an event; no server access needed) | `npm start` on the laptop | open the app with `?agent=http://localhost:8787/api` - browsers allow an HTTPS page to call `localhost` (Chrome may ask once for local network access) |
+| **Headsets / other devices use your laptop's backend** (hosted HTTPS app, same Wi-Fi) | `AGENT_HOST=0.0.0.0 npm start` on the laptop; give it a fixed address | each device opens the app with `?agent=http://<laptop-ip>:8787/api` (the start-up log prints it) and, once per browser, allows that origin: `chrome://flags/#unsafely-treat-insecure-origin-as-secure` -> `http://<laptop-ip>:8787`, enable, relaunch. In a multiplayer session the others can watch your agent session live ("Share live"), each needing this setup |
 | **Backend on another machine in a trusted network** | `AGENT_HOST=0.0.0.0 npm start` | `python3 server.py --backend http://<backend-host>:8787/api` (or a web server proxy); `agentBackendUrl` only if the app is served over plain HTTP (see below) |
 
 Rules that bite:
 
 - **HTTPS pages cannot call an HTTP backend** (mixed content). A deployment served over HTTPS (any
   public site, or a Quest headset that opens it by network address instead of `localhost`) needs the
-  backend behind HTTPS too - the reverse proxy setup does this.
+  backend behind HTTPS too - the reverse proxy setup does this. Two exceptions: `http://localhost`
+  (the browser treats it as secure), and an origin allowed in the browser flag
+  `chrome://flags/#unsafely-treat-insecure-origin-as-secure` (the laptop rows above).
 - The backend answers with CORS (`*`) and `Cross-Origin-Resource-Policy: cross-origin`, so a
   different origin works when the scheme matches.
 - Server-sent events: the proxy must not buffer `/agent-api/sessions/*/events` (nginx:
@@ -93,6 +102,7 @@ Copy `.env.example` to `.env`; everything is optional.
 |---|---|---|
 | `AGENT_PORT` | `8787` | port |
 | `AGENT_HOST` | `127.0.0.1` | interface; `0.0.0.0` = all (no authentication!). Own names on purpose: `PORT` / `HOST` are set by conda and others and are ignored |
+| `AGENT_APP_URL` | - | the app's address (e.g. `https://app.example.org`): the start-up log then prints full links with `?agent=` |
 | `SESSIONS_DIR` | `../asdf10k-agentic-sessions` | sessions, agent workspaces, event logs; must be **outside** this repo |
 | `IDLE_CLOSE_MIN` | `15` | close an idle session's agent process after this many minutes (resumed on the next message) |
 | `AGENT_MODEL` | `claude-sonnet-5-5` | model of the session agent; `claude-opus-5-5` for heavier research |

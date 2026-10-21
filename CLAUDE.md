@@ -9,6 +9,10 @@ first. The plan, protocol decisions and phase history live in the app repo:
 actions); the window side is `../asdf10k/docs/windows/agent.md`. Continuing the work (phase 5: sessions
 overview, jobs, profiles, subagents): start with `../asdf10k/docs/agent-handover.md`.
 
+**"Start the backend for <app URL>"** (a user, not a developer): follow the skill
+`.claude/skills/start-backend/SKILL.md` - it starts the server and hands over the `?agent=` links
+and the browser flag other devices need.
+
 ## Commands
 
 - `npm run dev` - server with `tsx watch` on **127.0.0.1:8787** (`/api/...`; `AGENT_HOST=0.0.0.0` opens it - there is no authentication). `npm start` = no watch: after a

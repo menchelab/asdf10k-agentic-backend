@@ -8,6 +8,7 @@ Backend of the asdf10k Agent window. Start with `../CLAUDE.md` (rules, commands,
 | [sdk-notes.md](sdk-notes.md) | What the Claude Agent SDK does that the code relies on or works around (one message per block, folded messages, background turns, connectors, resume, interrupt, ...) |
 | [testing.md](testing.md) | How to verify a change: typecheck, vitest, fake agent, curl recipes, where a session's files and the SDK transcript are, how to read a stuck run |
 | [../README.md](../README.md) | Setup for humans: requirements, run, Python, voice input, env variables |
+| [../.claude/skills/start-backend/SKILL.md](../.claude/skills/start-backend/SKILL.md) | Agent skill: start the backend for a hosted app URL, hand out the `?agent=` links (this machine, LAN devices) and the Chrome flag |
 
 The plan with every decision and the phase history is in the app repo:
 `../../asdf10k/docs/agent-window-plan.md`; the window side in `../../asdf10k/docs/windows/agent.md`;
