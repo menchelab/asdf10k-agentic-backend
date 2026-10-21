@@ -43,7 +43,8 @@ else console.info(`voice input: whisper.cpp ${transcriber.modelName} (${config.w
 
 const app = new Hono().basePath('/api');
 
-app.use('*', cors({ origin: '*', allowHeaders: ['Content-Type', 'Last-Event-ID'], allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }));
+// Content-Encoding: the app uploads the graph gzip-compressed (a cross-origin ?agent= backend preflights it)
+app.use('*', cors({ origin: '*', allowHeaders: ['Content-Type', 'Content-Encoding', 'Last-Event-ID'], allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }));
 app.use('*', async (c, next) => {
   // The app runs with COEP require-corp; needed when it talks to this backend cross-origin.
   c.header('Cross-Origin-Resource-Policy', 'cross-origin');
