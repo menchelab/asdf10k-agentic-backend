@@ -181,7 +181,10 @@ and `edges.tsv` (the app's whole graph with every column, re-uploaded when its h
 `selection.tsv`, `subset_library.tsv`, `app_context.json`. Every user message is prefixed with an
 `<app_context>` block rendered from the snapshot (`src/agent/appContext.ts`). The skills in
 `agent-home/.claude/skills/` (`asdf10k-columns`, `asdf10k-app`) are loaded into every session via
-`additionalDirectories`; the system prompt addition is `src/agent/systemPrompt.ts`.
+`additionalDirectories`; the system prompt addition is `src/agent/systemPrompt.ts`, plus the
+dataset's description when the app has one (the dataset folder's `data_description.txt`, sent with
+a message when it changed, kept as `input/data_description.txt`; a change restarts an idle agent
+process, which resumes the conversation with the new prompt).
 
 Sessions (agent workspaces, event logs, proposals) live outside this repo, by default in
 `../asdf10k-agentic-sessions/` (`SESSIONS_DIR`): Claude Code loads `.claude/` and `CLAUDE.md` from

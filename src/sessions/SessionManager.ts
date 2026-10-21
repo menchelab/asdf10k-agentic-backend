@@ -18,6 +18,7 @@ import { buildAgentOptions } from '../agent/agentOptions.js';
 import { composePrompt, renderAppContext, renderUserActions, writeAppInputs } from '../agent/appContext.js';
 import { createAppToolsServer } from '../agent/appTools.js';
 import { writeCatalogSkill } from '../agent/catalogSkill.js';
+import { writeDataDescription } from '../agent/dataDescription.js';
 import { FakeAgent } from '../fake/FakeAgent.js';
 import { AppCatalogSchema, type AppCatalog, type AppResultRequest, type AppSnapshot } from '../protocol.js';
 
@@ -209,9 +210,16 @@ export class SessionManager {
    * Accepts a user message. With a snapshot, the input files are refreshed and the agent gets the
    * `<app_context>` block in front of the text; the event log keeps the text as typed.
    */
-  async postMessage(id: string, text: string, snapshot?: AppSnapshot, catalog?: AppCatalog): Promise<{ messageId: string }> {
+  async postMessage(id: string, text: string, snapshot?: AppSnapshot, catalog?: AppCatalog, dataDescription?: { hash: string; text: string }): Promise<{ messageId: string }> {
     const meta = await this.get(id);
     if (!meta) throw new NotFoundError(id);
+    // The dataset description is part of the system prompt: written before the agent starts; an idle
+    // live agent restarts (resuming the conversation) so this message already sees the new one.
+    if (dataDescription && dataDescription.hash !== meta.dataDescriptionHash) {
+      await writeDataDescription(this.workspaceDir(id), dataDescription.text);
+      await this.updateMeta(id, (m) => ({ ...m, dataDescriptionHash: dataDescription.hash }));
+      if (this.live.get(id)?.running === false) this.closeLive(id);
+    }
     const session = await this.ensureLive(id, meta);
     // The app's catalog (settings, windows, commands) -> generated skill, rewritten when it changed.
     if (catalog) {

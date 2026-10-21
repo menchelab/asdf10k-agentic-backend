@@ -151,7 +151,9 @@ export const SessionMetaSchema = z.object({
   /** Hash of the last graph upload (phase 2). */
   graphHash: z.string().optional(),
   /** Hash of the app catalog the generated skill was written from (phase 4). */
-  catalogHash: z.string().optional()
+  catalogHash: z.string().optional(),
+  /** Hash of the dataset description in the session's system prompt ('' = the dataset has none). */
+  dataDescriptionHash: z.string().optional()
 });
 export type SessionMeta = z.infer<typeof SessionMetaSchema>;
 
@@ -254,7 +256,12 @@ export const PostMessageRequestSchema = z.object({
   text: z.string().min(1),
   snapshot: AppSnapshotSchema.optional(),
   /** Sent when its hash differs from the session's catalogHash; rendered into a skill. */
-  catalog: AppCatalogSchema.optional()
+  catalog: AppCatalogSchema.optional(),
+  /**
+   * The dataset's data_description.txt (written for the agent by the dataset's authors; text '' = none),
+   * sent when its hash differs from the session's dataDescriptionHash; appended to the system prompt.
+   */
+  dataDescription: z.object({ hash: z.string(), text: z.string().max(200_000) }).optional()
 });
 /** POST /sessions/:id/app-results/:requestId: the app's answer to an app_request. */
 export const AppResultRequestSchema = z.object({

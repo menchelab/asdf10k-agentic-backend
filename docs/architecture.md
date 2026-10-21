@@ -15,7 +15,8 @@ session's log; the window replays the log on attach and then follows the SSE str
 | `src/sessions/SessionManager.ts` | Session metas (`meta.json`), live sessions (`ensureLive`), `postMessage` (snapshot -> input files + `<app_context>`), graph upload, feedback, app requests, aside, interrupt, stall watchdog, idle close, startup repair |
 | `src/sessions/EventLog.ts` | `events.jsonl` + `.seq` sidecar, append / read / subscribe; the seq counter survives restarts (gap 1000) |
 | `src/agent/liveQuery.ts` | `LiveQuery` = one SDK `query()` in streaming-input mode with a push queue; `interrupt`, `close`, `reloadSkills` |
-| `src/agent/agentOptions.ts` | The SDK options (cwd, resume, settingSources project, additionalDirectories, bypassPermissions, strictMcpConfig, env) |
+| `src/agent/agentOptions.ts` | The SDK options (cwd, resume, settingSources project, additionalDirectories, bypassPermissions, strictMcpConfig, env; system prompt = preset + `systemPrompt.ts` + the dataset description) |
+| `src/agent/dataDescription.ts` | The dataset's `data_description.txt` from the app (`dataDescription` in a message, hash in meta `dataDescriptionHash`): stored as `input/data_description.txt`, rendered into the system prompt at every agent start |
 | `src/agent/EventNormalizer.ts` | SDK messages -> protocol events: runs, text blocks (deltas + final), tool steps with labels (`toolLabel`, `summarizeCommand`), todos, status, interrupt bookkeeping |
 | `src/agent/appContext.ts` | The `<app_context>` block put before every user message (dataset, columns, selection, library, open windows with ids, viz, what the user did since) |
 | `src/agent/appTools.ts` | In-process MCP server `asdf10k`: `propose_node_columns`, `publish_report`, `run_app_command` |

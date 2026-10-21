@@ -6,6 +6,7 @@
 import type { McpServerConfig, Options } from '@anthropic-ai/claude-agent-sdk';
 import { config } from '../config.js';
 import { SYSTEM_PROMPT_APPEND } from './systemPrompt.js';
+import { readDataDescription, renderDataDescription } from './dataDescription.js';
 
 export function buildAgentOptions(workspace: string, resume: string | undefined, mcpServers: Record<string, McpServerConfig>): Options {
   return {
@@ -29,7 +30,8 @@ export function buildAgentOptions(workspace: string, resume: string | undefined,
     // Without these, the logged-in account's claude.ai connectors are attached to every session.
     strictMcpConfig: true,
     settings: { disableClaudeAiConnectors: true },
-    systemPrompt: { type: 'preset', preset: 'claude_code', append: SYSTEM_PROMPT_APPEND },
+    // + the dataset's description when the app sent one (dataDescription.ts)
+    systemPrompt: { type: 'preset', preset: 'claude_code', append: SYSTEM_PROMPT_APPEND + renderDataDescription(readDataDescription(workspace)) },
     env: {
       ...(process.env as Record<string, string>),
       PATH: `${config.pythonBin}:${process.env.PATH ?? ''}`,
