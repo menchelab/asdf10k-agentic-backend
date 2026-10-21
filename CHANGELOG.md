@@ -2,6 +2,13 @@
 
 Every commit of every release, newest first.
 
+## 0.4.0 (2026-10-21)
+
+2 commits.
+
+- CORS: allow Content-Encoding (the app uploads the graph gzip-compressed): a cross-origin ?agent= backend (laptop over HTTPS or the insecure-origin flag) failed the first message's preflight (ec5c07b)
+- HTTPS for headsets: npm run cert (mkcert: localhost, host name, LAN addresses -> certs/, git-ignored) and a second listener on AGENT_HTTPS_PORT (8788) when the certificate exists; HTTP stays on 8787 (Vite proxy, localhost). Start-up hints give other devices https:// links and the accept-once step (open /api/health, Advanced -> Proceed) instead of the Chrome insecure-origin flag (kept as the no-certificate fallback); a warning when a LAN address is not in the certificate. AGENT_TLS_CERT / AGENT_TLS_KEY; tests; README, skill, architecture (22e166e)
+
 ## 0.3.0 (2026-10-21)
 
 3 commits.
