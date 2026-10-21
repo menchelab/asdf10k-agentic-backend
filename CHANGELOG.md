@@ -2,6 +2,14 @@
 
 Every commit of every release, newest first.
 
+## 0.3.0 (2026-10-21)
+
+3 commits.
+
+- Dataset description in the system prompt: the app sends the dataset's data_description.txt with a message when its hash changes (dataDescription, meta dataDescriptionHash); stored as input/data_description.txt, appended to the system prompt at every agent start; a change restarts an idle agent (resume); tests; docs (9f01459)
+- Start-up hints: print the app's ?agent= links (this machine; per LAN address with AGENT_HOST=0.0.0.0, plus the Chrome insecure-origin flag); AGENT_APP_URL makes them full links; start-backend skill (start for an app URL, hand out links and browser setup); README: laptop setups, mixed-content exceptions (83ac99b)
+- Protocol 2 (app plan C3): catalog commands carry presentation (direct / card / button), settings their scope, the empty actions list is gone; the run_app_command policy and the catalog skill read them (protocol 1 catalogs derived from effect as before); app results may carry txIds (e3313b8)
+
 ## 0.2.0 (2026-10-16)
 
 5 commits.
