@@ -72,6 +72,6 @@ EOF
 
 - `test/EventNormalizer*.test.ts` use the spike fixtures (`spike/fixtures/*.jsonl`); add a fixture
   when a new SDK message shape matters.
-- `test/appCommandPolicy.test.ts` for policy changes, `test/catalogSkill.test.ts` for skill text (and its size: column options by kind), `test/sessionTitle.test.ts` for session titles
+- `test/appCommandPolicy.test.ts` for policy changes, `test/catalogSkill.test.ts` for skill text (and its size: column options by kind; the ppicml catalog fixture `test/fixtures/catalog-ppicml.json` must stay under 17 KB), `test/agentOptions.test.ts` for the skill sources (agent-home + catalog only) and the prompt's structure3d fallback, `test/sessionTitle.test.ts` for session titles
   that the agent depends on (block syntax, scope paragraph), `test/validate.test.ts` for the TSV
   and report rules.

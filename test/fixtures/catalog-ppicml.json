@@ -1,0 +1,1825 @@
+{
+ "hash": "13c9bedd497544",
+ "settings": [
+  {
+   "id": "nodes.sizeAttribute",
+   "label": "Size attribute",
+   "category": "Nodes",
+   "type": "dropdown",
+   "options": [
+    "uniform"
+   ],
+   "description": "what drives node size: \"uniform\" (every node the same) or a column (a numeric value scales the size; a node without a number gets the uniform size)",
+   "scope": "shared",
+   "columnKinds": [
+    "array",
+    "categorical",
+    "numeric",
+    "text"
+   ],
+   "columnsOf": "node"
+  },
+  {
+   "id": "nodes.colorAttribute",
+   "label": "Color attribute",
+   "category": "Nodes",
+   "type": "dropdown",
+   "options": [
+    "original"
+   ],
+   "description": "what drives node colour: \"original\" (the colour from the data) or a column (category / list columns get one colour per value, numeric a gradient)",
+   "scope": "shared",
+   "columnKinds": [
+    "array",
+    "categorical",
+    "numeric",
+    "text"
+   ],
+   "columnsOf": "node"
+  },
+  {
+   "id": "nodes.sizeScaling",
+   "label": "Size scaling",
+   "category": "Nodes",
+   "type": "number",
+   "min": 1,
+   "max": 8,
+   "step": 0.01,
+   "description": "multiplies every node's size (bigger = all nodes bigger, hubs included); the contrast between small and big nodes comes from nodes.sizeAttribute + nodes.sizeMethod",
+   "scope": "shared"
+  },
+  {
+   "id": "nodes.minSize",
+   "label": "Min size",
+   "category": "Nodes",
+   "type": "number",
+   "min": 0,
+   "max": 5,
+   "step": 0.01,
+   "description": "floor for the smallest nodes after scaling (lower = more contrast)",
+   "scope": "shared"
+  },
+  {
+   "id": "nodes.sizeMethod",
+   "label": "Size scaling method",
+   "category": "Nodes",
+   "type": "dropdown",
+   "options": [
+    "linear",
+    "log",
+    "symlog",
+    "quantile"
+   ],
+   "description": "how the size attribute maps to size",
+   "scope": "shared"
+  },
+  {
+   "id": "nodes.colorMethod",
+   "label": "Color scaling method",
+   "category": "Nodes",
+   "type": "dropdown",
+   "options": [
+    "linear",
+    "log",
+    "symlog",
+    "quantile"
+   ],
+   "description": "how a numeric colour attribute maps to the gradient",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.widthAttribute",
+   "label": "Width attribute",
+   "category": "Edges",
+   "type": "dropdown",
+   "options": [
+    "uniform"
+   ],
+   "description": "what drives edge width: \"uniform\" (every edge the same) or a numeric edge column (e.g. an RWR flow column; an edge without a value gets the uniform width)",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.colorAttribute",
+   "label": "Color attribute",
+   "category": "Edges",
+   "type": "dropdown",
+   "options": [
+    "original",
+    "edge_type_c"
+   ],
+   "description": "what drives edge colour: \"original\" (the file's colour, else the blend of its two nodes) or an edge column",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.widthScaling",
+   "label": "Width scaling",
+   "category": "Edges",
+   "type": "number",
+   "min": 0.01,
+   "max": 15,
+   "step": 0.01,
+   "description": "multiplies every edge's width (bigger = all edges wider); the contrast between thin and wide edges comes from edges.widthAttribute + edges.widthMethod",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.minWidth",
+   "label": "Min width",
+   "category": "Edges",
+   "type": "number",
+   "min": 0.01,
+   "max": 100,
+   "step": 0.01,
+   "description": "floor for the thinnest edges after scaling (lower = more contrast)",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.cutoffAttribute",
+   "label": "Cut-off by",
+   "category": "Edges",
+   "type": "dropdown",
+   "options": [
+    "none"
+   ],
+   "description": "the numeric edge column the edge cut-off compares (\"none\" = no cut-off; edges.cutoff is offered once a column is chosen)",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.opacity",
+   "label": "Opacity",
+   "category": "Edges",
+   "type": "number",
+   "min": 0.01,
+   "max": 1,
+   "step": 0.01,
+   "description": "edge opacity",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.blending",
+   "label": "Blending",
+   "category": "Edges",
+   "type": "dropdown",
+   "options": [
+    "normal",
+    "additive",
+    "multiply"
+   ],
+   "description": "how edge colours combine where edges overlap",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.alphaAttribute",
+   "label": "Alpha by",
+   "category": "Edges",
+   "type": "dropdown",
+   "options": [
+    "none"
+   ],
+   "description": "the numeric edge column the edge opacity follows, normalised between edges.minAlpha and edges.maxAlpha (offered once a column is chosen; \"none\" = full opacity)",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.fadeDistance",
+   "label": "Fade Distance",
+   "category": "Edges",
+   "type": "number",
+   "min": 0.1,
+   "max": 1,
+   "step": 0.01,
+   "description": "edges fade with distance from the camera (1 = no fade)",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.widthMethod",
+   "label": "Width scaling method",
+   "category": "Edges",
+   "type": "dropdown",
+   "options": [
+    "linear",
+    "log",
+    "symlog",
+    "quantile"
+   ],
+   "description": "how the width attribute maps to width",
+   "scope": "shared"
+  },
+  {
+   "id": "edges.colorMethod",
+   "label": "Color scaling method",
+   "category": "Edges",
+   "type": "dropdown",
+   "options": [
+    "linear",
+    "log",
+    "symlog",
+    "quantile"
+   ],
+   "description": "how a numeric edge colour attribute maps to the gradient",
+   "scope": "shared"
+  },
+  {
+   "id": "layout.nodeLayout",
+   "label": "Node layout",
+   "category": "Layout",
+   "type": "dropdown",
+   "options": [
+    "default",
+    "fa23d_2",
+    "fa2_2",
+    "fa2spectral_1",
+    "fr3d_1",
+    "hive5_1",
+    "hyp_1",
+    "isomap_1",
+    "landscape_1",
+    "n2vbal_tsne_1",
+    "paga_1",
+    "rwr_1",
+    "shell_2",
+    "topobet_1",
+    "__CUSTOM__"
+   ],
+   "description": "which precomputed layout positions the nodes (changing it flies the nodes to the new positions)",
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.nodes",
+   "label": "Highlight nodes",
+   "category": "Highlight",
+   "type": "toggle",
+   "description": "mark the selected nodes (bigger, glow); the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Highlight nodes\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.fadeOthers",
+   "label": "Fade others",
+   "category": "Highlight",
+   "type": "toggle",
+   "description": "dim the nodes outside the selection; the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Fade others\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.fadeOpacity",
+   "label": "Fade opacity",
+   "category": "Highlight",
+   "type": "number",
+   "min": 0,
+   "max": 1,
+   "step": 0.05,
+   "description": "opacity of the dimmed nodes (0 = invisible); the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Fade opacity\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.nodeSize",
+   "label": "Highlight node size",
+   "category": "Highlight",
+   "type": "number",
+   "min": 0,
+   "max": 6,
+   "step": 0.1,
+   "unit": "x",
+   "description": "size factor of the selected nodes; the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Highlight node size\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.glow",
+   "label": "Glow opacity",
+   "category": "Highlight",
+   "type": "number",
+   "min": 0.2,
+   "max": 20,
+   "step": 0.1,
+   "description": "glow strength of the selected nodes; the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Glow opacity\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.edgesOn",
+   "label": "Highlight edges",
+   "category": "Highlight",
+   "type": "toggle",
+   "description": "mark the edges of the selection; the user changes it: Settings window (gear icon in the icon bar) \u203a Edge highlighting \u203a \"Highlight edges\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.edgeWidth",
+   "label": "Edge width",
+   "category": "Highlight",
+   "type": "number",
+   "min": -2,
+   "max": 10,
+   "step": 0.1,
+   "unit": "x",
+   "description": "width factor of the selection edges; the user changes it: Settings window (gear icon in the icon bar) \u203a Edge highlighting \u203a \"Edge width\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.edgeOpacity",
+   "label": "Highlight edge opacity",
+   "category": "Highlight",
+   "type": "number",
+   "min": 0.1,
+   "max": 10,
+   "step": 0.1,
+   "description": "opacity factor of the selection edges; the user changes it: Settings window (gear icon in the icon bar) \u203a Edge highlighting \u203a \"Highlight edge opacity\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.fadeEdges",
+   "label": "Fade other edges",
+   "category": "Highlight",
+   "type": "toggle",
+   "description": "dim the edges outside the selection; the user changes it: Settings window (gear icon in the icon bar) \u203a Edge highlighting \u203a \"Fade other edges\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.fadeEdgesOpacity",
+   "label": "Fade edges opacity",
+   "category": "Highlight",
+   "type": "number",
+   "min": 0,
+   "max": 1,
+   "step": 0.05,
+   "description": "opacity of the dimmed edges (0 = hidden); the user changes it: Settings window (gear icon in the icon bar) \u203a Edge highlighting \u203a \"Fade edges opacity\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.subsetEdgesOnly",
+   "label": "Subset edges only",
+   "category": "Highlight",
+   "type": "toggle",
+   "description": "draw only the edges of the selection; the user changes it: Settings window (gear icon in the icon bar) \u203a Edge highlighting \u203a \"Subset edges only\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.edgeSubsetMode",
+   "label": "Edge subset mode",
+   "category": "Highlight",
+   "type": "dropdown",
+   "options": [
+    "induced",
+    "incident"
+   ],
+   "description": "which edges count as the selection's: induced = both ends selected, incident = at least one end; the user changes it: Settings window (gear icon in the icon bar) \u203a Edge highlighting \u203a \"Edge subset mode\"",
+   "readOnly": true,
+   "scope": "shared"
+  },
+  {
+   "id": "highlight.bloomMode",
+   "label": "Mode",
+   "category": "Highlight",
+   "type": "dropdown",
+   "options": [
+    "always",
+    "selection",
+    "off"
+   ],
+   "description": "bloom glow: always, only for the selection, or off; the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Mode\"",
+   "readOnly": true,
+   "scope": "device"
+  },
+  {
+   "id": "highlight.bloomStrength",
+   "label": "Strength",
+   "category": "Highlight",
+   "type": "number",
+   "min": 0,
+   "max": 3,
+   "step": 0.05,
+   "description": "bloom intensity; the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Strength\"",
+   "readOnly": true,
+   "scope": "device"
+  },
+  {
+   "id": "highlight.bloomRadius",
+   "label": "Radius",
+   "category": "Highlight",
+   "type": "number",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "description": "bloom spread; the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Radius\"",
+   "readOnly": true,
+   "scope": "device"
+  },
+  {
+   "id": "highlight.bloomThreshold",
+   "label": "Threshold",
+   "category": "Highlight",
+   "type": "number",
+   "min": 0,
+   "max": 1,
+   "step": 0.01,
+   "description": "brightness from which bloom starts; the user changes it: Settings window (gear icon in the icon bar) \u203a Highlight nodes \u203a \"Threshold\"",
+   "readOnly": true,
+   "scope": "device"
+  },
+  {
+   "id": "nav.mode",
+   "label": "Mode",
+   "category": "Navigation",
+   "type": "dropdown",
+   "options": [
+    "Trackball",
+    "Orbit",
+    "Map"
+   ],
+   "description": "camera controls: Trackball (free rotation), Orbit (around a target, up stays up), Map (pan / zoom)",
+   "scope": "device"
+  },
+  {
+   "id": "nav.speed",
+   "label": "Speed",
+   "category": "Navigation",
+   "type": "number",
+   "min": 0.1,
+   "max": 5,
+   "step": 0.1,
+   "description": "camera movement speed",
+   "scope": "device"
+  },
+  {
+   "id": "nav.fogDistance",
+   "label": "Fog Distance",
+   "category": "Navigation",
+   "type": "number",
+   "min": 5,
+   "max": 4000,
+   "step": 1,
+   "description": "distance at which the scene fades into the background",
+   "scope": "device"
+  }
+ ],
+ "windows": [
+  {
+   "type": "subset-builder",
+   "label": "Subset Query",
+   "purpose": "subset by formula (e.g. layer_c=metabolite AND degree_n>3); saved queries [n/a]",
+   "options": [
+    {
+     "key": "formula",
+     "kind": "string",
+     "description": "formula to prefill"
+    }
+   ]
+  },
+  {
+   "type": "subset-list",
+   "label": "Subset List",
+   "purpose": "paste node ids; the subset library (named node lists) [n/a]",
+   "options": [
+    {
+     "key": "namesText",
+     "kind": "string",
+     "description": "node ids to prefill, space separated"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "subset-table",
+   "label": "Subset Table",
+   "purpose": "table of the selected nodes with chosen columns; sortable, exportable, drag rows [subset]",
+   "options": [
+    {
+     "key": "selectedAttributes",
+     "kind": "columns",
+     "values": [
+      "label"
+     ],
+     "columnKinds": [
+      "numeric",
+      "categorical",
+      "array",
+      "kv",
+      "categorical_kv",
+      "normalized",
+      "text"
+     ],
+     "description": "columns to show (label = the pinned Label column)"
+    },
+    {
+     "key": "sortKey",
+     "kind": "column",
+     "values": [
+      "label"
+     ],
+     "columnKinds": [
+      "numeric",
+      "categorical",
+      "array",
+      "kv",
+      "categorical_kv",
+      "normalized",
+      "text"
+     ]
+    },
+    {
+     "key": "sortDir",
+     "kind": "enum",
+     "values": [
+      "asc",
+      "desc"
+     ]
+    },
+    {
+     "key": "title",
+     "kind": "string"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "edge-table",
+   "label": "Edge Table",
+   "purpose": "table of the edges inside the selection [subset]",
+   "options": [
+    {
+     "key": "selectedAttributes",
+     "kind": "edgeColumns",
+     "values": [
+      "source",
+      "target",
+      "edge_type_c"
+     ],
+     "description": "edge columns to show"
+    },
+    {
+     "key": "sortKey",
+     "kind": "edgeColumn",
+     "values": [
+      "source",
+      "target",
+      "edge_type_c"
+     ]
+    },
+    {
+     "key": "sortDir",
+     "kind": "enum",
+     "values": [
+      "asc",
+      "desc"
+     ]
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "kv-table",
+   "label": "KV calc table",
+   "purpose": "key:value columns of the selection as a table [subset]",
+   "options": [
+    {
+     "key": "column",
+     "kind": "column",
+     "columnKinds": [
+      "kv",
+      "categorical_kv"
+     ],
+     "description": "the key:value column"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "distribution",
+   "label": "Distributions",
+   "purpose": "histogram / bar chart of one column [global-or-subset]",
+   "options": [
+    {
+     "key": "selectedColumn",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "numeric",
+      "normalized",
+      "categorical",
+      "array",
+      "kv",
+      "categorical_kv"
+     ]
+    },
+    {
+     "key": "useGlobal",
+     "kind": "boolean",
+     "description": "true = all nodes (default), false = the current selection"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    },
+    {
+     "key": "rot90",
+     "kind": "boolean",
+     "description": "horizontal bars"
+    },
+    {
+     "key": "kvUseAdaptive",
+     "kind": "boolean",
+     "description": "adaptive bins for key:value columns"
+    }
+   ]
+  },
+  {
+   "type": "upset",
+   "label": "UpSet",
+   "purpose": "UpSet plot of a list column: which combinations of terms the nodes carry [global-or-subset]",
+   "options": [
+    {
+     "key": "selectedAttribute",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "array",
+      "kv",
+      "categorical_kv"
+     ]
+    },
+    {
+     "key": "numericAttribute",
+     "kind": "column",
+     "columnKinds": [
+      "numeric",
+      "normalized"
+     ],
+     "description": "optional numeric column for the set bars"
+    },
+    {
+     "key": "useGlobal",
+     "kind": "boolean",
+     "description": "true = all nodes (default), false = the current selection"
+    }
+   ]
+  },
+  {
+   "type": "heatmap",
+   "label": "Heatmap",
+   "purpose": "heatmap of two columns (co-occurrence of their values) over the nodes [global-or-subset]",
+   "options": [
+    {
+     "key": "col1",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "numeric",
+      "categorical",
+      "array",
+      "kv",
+      "categorical_kv",
+      "normalized"
+     ]
+    },
+    {
+     "key": "col2",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "numeric",
+      "categorical",
+      "array",
+      "kv",
+      "categorical_kv",
+      "normalized"
+     ]
+    },
+    {
+     "key": "useLog1",
+     "kind": "boolean"
+    },
+    {
+     "key": "useLog2",
+     "kind": "boolean"
+    },
+    {
+     "key": "useGlobal",
+     "kind": "boolean",
+     "description": "true = all nodes (default), false = the current selection"
+    }
+   ]
+  },
+  {
+   "type": "scatter",
+   "label": "Scatter chart",
+   "purpose": "scatter plot of two numeric columns; rectangle select [global-or-subset]",
+   "options": [
+    {
+     "key": "colX",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "numeric",
+      "normalized"
+     ]
+    },
+    {
+     "key": "colY",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "numeric",
+      "normalized"
+     ]
+    },
+    {
+     "key": "scaleX",
+     "kind": "enum",
+     "values": [
+      "linear",
+      "logp"
+     ]
+    },
+    {
+     "key": "scaleY",
+     "kind": "enum",
+     "values": [
+      "linear",
+      "logp"
+     ]
+    },
+    {
+     "key": "normalize",
+     "kind": "boolean"
+    },
+    {
+     "key": "aggregateDots",
+     "kind": "boolean"
+    },
+    {
+     "key": "showXEqualsY",
+     "kind": "boolean"
+    },
+    {
+     "key": "showRegressionLine",
+     "kind": "boolean"
+    },
+    {
+     "key": "showResiduals",
+     "kind": "boolean"
+    },
+    {
+     "key": "useGlobal",
+     "kind": "boolean",
+     "description": "true = all nodes (default), false = the current selection"
+    }
+   ]
+  },
+  {
+   "type": "enrichment",
+   "label": "Enrichment",
+   "purpose": "enrichment of a list / category column in the selection against the whole graph (hypergeometric, FDR); table or chart [subset]",
+   "options": [
+    {
+     "key": "selectedColumn",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "array",
+      "categorical",
+      "kv",
+      "categorical_kv"
+     ]
+    },
+    {
+     "key": "viewMode",
+     "kind": "enum",
+     "values": [
+      "table",
+      "chart"
+     ]
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "lcc-analysis",
+   "label": "LCC/k-core CC Analysis",
+   "purpose": "connected components and k-core of the graph or the selection [global-or-subset]",
+   "options": [
+    {
+     "key": "useGlobal",
+     "kind": "boolean",
+     "description": "true = all nodes, false = the current selection (default)"
+    },
+    {
+     "key": "kCoreMode",
+     "kind": "enum",
+     "values": [
+      "connectivity",
+      "lcc-per-k",
+      "all-at-n"
+     ]
+    },
+    {
+     "key": "kCoreN",
+     "kind": "number"
+    },
+    {
+     "key": "kCoreOp",
+     "kind": "enum",
+     "values": [
+      "=",
+      ">="
+     ]
+    },
+    {
+     "key": "lccPerKView",
+     "kind": "enum",
+     "values": [
+      "per-shell",
+      "cumulative"
+     ]
+    }
+   ]
+  },
+  {
+   "type": "subset-network",
+   "label": "Subset Network",
+   "purpose": "2D network of the selection (induced edges) [subset]",
+   "options": [
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "network-meta",
+   "label": "Network Meta",
+   "purpose": "2D network aggregated by a category / list column (one node per value) [global-or-subset]",
+   "options": [
+    {
+     "key": "column",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "categorical",
+      "array",
+      "kv",
+      "categorical_kv"
+     ]
+    },
+    {
+     "key": "useGlobal",
+     "kind": "boolean",
+     "description": "true = all nodes (default), false = the current selection"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "multi-meta-network",
+   "label": "Multi Meta Network",
+   "purpose": "several meta networks side by side [global-or-subset]",
+   "options": [
+    {
+     "key": "columns",
+     "kind": "columns",
+     "required": true,
+     "columnKinds": [
+      "categorical",
+      "array",
+      "kv",
+      "categorical_kv"
+     ]
+    },
+    {
+     "key": "showNodeEdges",
+     "kind": "boolean"
+    },
+    {
+     "key": "useGlobal",
+     "kind": "boolean",
+     "description": "true = all nodes, false = the current selection (default)"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "aggregated-network",
+   "label": "Aggregated Network",
+   "purpose": "nodes aggregated by a column value, edges between the groups [global-or-subset]",
+   "options": [
+    {
+     "key": "column",
+     "kind": "column",
+     "required": true,
+     "columnKinds": [
+      "categorical",
+      "array",
+      "kv",
+      "categorical_kv"
+     ]
+    },
+    {
+     "key": "showLabels",
+     "kind": "boolean"
+    },
+    {
+     "key": "nodeSizeScaleFactor",
+     "kind": "number"
+    },
+    {
+     "key": "edgeWidthScaleFactor",
+     "kind": "number"
+    },
+    {
+     "key": "useGlobal",
+     "kind": "boolean",
+     "description": "true = all nodes (default), false = the current selection"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "rwr",
+   "label": "RWR",
+   "purpose": "random walk with restart from the selected seeds (GPU): rank / probability columns, edge flow, top-N subset - the rwr.run command does the same without the window [subset]",
+   "options": [
+    {
+     "key": "rwrName",
+     "kind": "string",
+     "description": "name part of the result columns"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  },
+  {
+   "type": "layoutcalc",
+   "label": "Layout calc",
+   "purpose": "compute a new 3D layout (PaCMAP / UMAP, optionally from feature columns) into x_/y_/z_ columns [global]",
+   "options": [
+    {
+     "key": "algorithm",
+     "kind": "enum",
+     "values": [
+      "pacmap",
+      "umap"
+     ]
+    },
+    {
+     "key": "useSpectralEmbedding",
+     "kind": "boolean",
+     "description": "large graphs: spectral embedding instead of the full adjacency matrix"
+    },
+    {
+     "key": "spectralDimensions",
+     "kind": "number"
+    },
+    {
+     "key": "featureColumnIds",
+     "kind": "columns",
+     "columnKinds": [
+      "numeric",
+      "normalized"
+     ],
+     "description": "node columns that shape the layout besides the graph"
+    },
+    {
+     "key": "featureInfluence",
+     "kind": "number",
+     "description": "weight of the feature columns"
+    }
+   ]
+  },
+  {
+   "type": "clustering",
+   "label": "Clustering",
+   "purpose": "clusters from a layout (k-NN + Louvain / Leiden) into a category column - the cluster.run command does the same without the window [global]",
+   "options": [
+    {
+     "key": "layout",
+     "kind": "enum",
+     "values": [
+      "default",
+      "fa23d_2",
+      "fa2_2",
+      "fa2spectral_1",
+      "fr3d_1",
+      "hive5_1",
+      "hyp_1",
+      "isomap_1",
+      "landscape_1",
+      "n2vbal_tsne_1",
+      "paga_1",
+      "rwr_1",
+      "shell_2",
+      "topobet_1"
+     ]
+    },
+    {
+     "key": "method",
+     "kind": "enum",
+     "values": [
+      "louvain",
+      "leiden-simple"
+     ]
+    },
+    {
+     "key": "k",
+     "kind": "number"
+    },
+    {
+     "key": "resolution",
+     "kind": "number"
+    },
+    {
+     "key": "minClusterSize",
+     "kind": "number"
+    },
+    {
+     "key": "columnName",
+     "kind": "string"
+    }
+   ]
+  },
+  {
+   "type": "custom",
+   "label": "custom",
+   "purpose": "a static window shipped with the dataset (data/<dataset>/custom_windows/): curated text, figures and buttons prepared for this dataset - open it when its title fits the question [n/a]",
+   "options": [
+    {
+     "key": "name",
+     "kind": "enum",
+     "required": true,
+     "values": [
+      "tour"
+     ],
+     "description": "the custom window id"
+    }
+   ]
+  },
+  {
+   "type": "dataset-info",
+   "label": "Dataset info",
+   "purpose": "dataset summary: counts, columns, kinds [global]",
+   "options": []
+  },
+  {
+   "type": "collab",
+   "label": "Collab session",
+   "purpose": "multiplayer session: start, join or leave a session (3-letter code), members; personal, never synced [n/a]",
+   "options": []
+  },
+  {
+   "type": "structure3d",
+   "label": "Molecular Structure",
+   "purpose": "3D molecular structure of the active node (PDB / AlphaFold); drop a node on it; node= shows one node without changing the active node [n/a]",
+   "options": [
+    {
+     "key": "node",
+     "kind": "string",
+     "description": "node id or name to show (else the active node)"
+    },
+    {
+     "key": "frozen",
+     "kind": "boolean",
+     "description": "true = keep the nodes shown at open time instead of following the selection"
+    },
+    {
+     "key": "frozenIds",
+     "kind": "ids",
+     "description": "node ids a frozen window shows (set when it freezes; empty = the selection at that moment)"
+    }
+   ]
+  }
+ ],
+ "commands": [
+  {
+   "id": "settings.set",
+   "label": "Set a viz setting",
+   "description": "Sets one setting by its ring id (see the app catalog: nodes.colorAttribute, nodes.colorMethod = linear | log | symlog | quantile, nodes.sizeAttribute, edges.widthAttribute, edges.cutoffAttribute then edges.cutoff, edges.alphaAttribute, layout.nodeLayout, ...). Dropdown values must be one of the options: a column, or the built-in uniform (same size / width), original (the data's own colour) or none (no cut-off / alpha); numbers within the range. The highlight.* settings (highlight mode: how the selection is marked, fade others) are read-only here: tell the user what to change in the Settings window instead.",
+   "effect": "view",
+   "presentation": "card",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string",
+      "minLength": 1
+     },
+     "value": {
+      "type": [
+       "string",
+       "number",
+       "boolean"
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "value"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "subset.expandOneHop",
+   "label": "Expand by 1 hop",
+   "description": "Adds every neighbour of the selected nodes to the subset.",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "subset.connect",
+   "label": "Connect subset",
+   "description": "Adds the connector nodes on shortest paths so the selection becomes one connected subgraph (Steiner-tree heuristic).",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "subset.commonNeighbors",
+   "label": "Common neighbors",
+   "description": "Adds the nodes connected to every selected node.",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "subset.pruneLeaves",
+   "label": "Prune leaf nodes",
+   "description": "Removes selected nodes with at most one edge to other selected nodes (repeat to peel further).",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "subset.isolate",
+   "label": "Isolate mode",
+   "description": "Toggles isolate mode: everything outside the selection is hidden (a user choice, like the highlight settings).",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "subset.subsetLayout",
+   "label": "Subset layout",
+   "description": "Toggles a 3D layout of the selection only.",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "subset.clear",
+   "label": "Clear subset",
+   "description": "Clears the selection (same as subset.set without ids).",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "nav.flyToSubset",
+   "label": "Fly to subset",
+   "description": "Flies the camera to the current selection.",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "nav.resetView",
+   "label": "Reset view",
+   "description": "Camera back to the start view.",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "layout.next",
+   "label": "Next layout",
+   "description": "Switches to the next precomputed layout (settings.set layout.nodeLayout picks one by name).",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "layout.prev",
+   "label": "Previous layout",
+   "description": "Switches to the previous precomputed layout.",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "settings.list",
+   "label": "List the view settings",
+   "description": "Every view setting with its id, label, category, type, options or range and current value - the ids settings.set accepts (highlight.* are read-only for the in-app agent; data.* are not settings).",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "category": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "config.export",
+   "label": "Export the config",
+   "description": "Returns a ready config.json payload of the current state (layout, presets, libraries, open windows, tooltips, ...). The current view is first saved as a preset (presetName, else \"default\", overwritten) and becomes lastUsedPreset. localStorage (window positions) only with includeLocalStorage.",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "presetName": {
+      "type": "string",
+      "minLength": 1
+     },
+     "includeLocalStorage": {
+      "type": "boolean"
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "dataset.switch",
+   "label": "Switch dataset",
+   "description": "Loads another dataset from data/index.json (closes every window, clears the subset; an agent session belongs to one dataset, start a new one afterwards). Datasets: ppicml = PPI CML, ppicml_old = PPI CML (old), hereditary_ataxias = Hereditary ataxias, hereditary_cardiomyopathies = Hereditary cardiomyopathies. Aliases (old keys) are accepted.",
+   "effect": "data",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "key": {
+      "type": "string",
+      "minLength": 1
+     }
+    },
+    "required": [
+     "key"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "window.open",
+   "label": "Open a window",
+   "description": "Opens an analysis window with settings (see the app catalog for the window types and their options, e.g. type=distribution with selectedColumn and useGlobal; type=scatter with colX, colY; type=enrichment with selectedColumn). Wrong column names or values are errors; unknown option keys are ignored. Returns the window id (for window.configure / window.close).",
+   "effect": "view",
+   "presentation": "card",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "type": {
+      "type": "string",
+      "minLength": 1
+     },
+     "window": {
+      "type": "string"
+     },
+     "id": {
+      "type": "string"
+     },
+     "config": {
+      "type": "object",
+      "propertyNames": {
+       "type": "string"
+      },
+      "additionalProperties": {}
+     }
+    },
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "window.configure",
+   "label": "Change an open window",
+   "description": "Changes the settings of an open window: by id (from the app context, e.g. popout-distribution) or, without id, the most recently opened window of a type (type=distribution - e.g. one a card of yours just opened). The new options are merged into its current ones and applied in place - same window, same id (selectedColumn, useGlobal = G / S toggle, ...). A null value removes the option (back to the default). Returns the window id and the previous values of the changed options.",
+   "effect": "view",
+   "presentation": "card",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string",
+      "minLength": 1
+     },
+     "type": {
+      "type": "string",
+      "minLength": 1
+     },
+     "config": {
+      "type": "object",
+      "propertyNames": {
+       "type": "string"
+      },
+      "additionalProperties": {}
+     }
+    },
+    "additionalProperties": {}
+   }
+  },
+  {
+   "id": "window.close",
+   "label": "Close a window",
+   "description": "Closes an open window by id (from the app context). Returns its type and settings, so it can be opened again.",
+   "effect": "view",
+   "presentation": "card",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string",
+      "minLength": 1
+     }
+    },
+    "required": [
+     "id"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "rwr.run",
+   "label": "Random walk with restart",
+   "description": "Runs the app's GPU random walk with restart from seed nodes (default: the current selection). Adds the node columns rwr_<name>_rank_n and rwr_<name>_probability_n and, by default, the EDGE column rwr_<name>_flow_n (the walk's flow per edge; edgeMetrics: false for none, or a list of flow | flowMin | geoMean). Show the edge column too: edges.colorAttribute and/or edges.widthAttribute = rwr_<name>_flow_n with edges.colorMethod / edges.widthMethod symlog or quantile. alpha = restart probability (default 0.7), beta (default 0.3). topN saves the top-N nodes as the library subset rwr_<name>_top<N> - leave it out unless the user asked for a subset. Returns the columns and the ten best-ranked nodes; the new columns are in input/nodes.tsv and input/edges.tsv right after the call.",
+   "effect": "compute",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "seeds": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "name": {
+      "type": "string"
+     },
+     "alpha": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+     },
+     "beta": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+     },
+     "edgeMetrics": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "array",
+        "items": {
+         "type": "string",
+         "enum": [
+          "flow",
+          "flowMin",
+          "geoMean"
+         ]
+        }
+       }
+      ]
+     },
+     "topN": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5000
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "cluster.run",
+   "label": "Clustering",
+   "description": "Runs the app's clustering: k-NN graph on the coordinates of a layout ('default' = current positions) + Louvain (or leiden-simple), writes a category column (default cluster_<n>_c; clusters numbered from 1, -1 = noise for clusters smaller than minClusterSize, default 5). k (default 15), resolution (default 1). Returns the column name and cluster sizes.",
+   "effect": "compute",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "layout": {
+      "type": "string"
+     },
+     "method": {
+      "type": "string",
+      "enum": [
+       "louvain",
+       "leiden-simple"
+      ]
+     },
+     "k": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 100
+     },
+     "resolution": {
+      "type": "number",
+      "minimum": 0.05,
+      "maximum": 10
+     },
+     "minClusterSize": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+     },
+     "columnName": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "subset.saveToLibrary",
+   "label": "Save subset to library",
+   "description": "Adds a named node list to the subset library and tags its nodes in the subsets_a column. Ids are node ids (_id in nodes.tsv); a bare name means every node of that name (all copies on multiplex data). No ids: the current selection. A taken name gets _2, _3, ...; the name actually used is returned.",
+   "effect": "data",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string",
+      "minLength": 1
+     },
+     "ids": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "name"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "subset.set",
+   "label": "Set subset",
+   "description": "Makes the given node ids the current subset (selection); a bare name selects every node of that name (all copies on multiplex data). No ids (or an empty list) clears the subset.",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "ids": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "subset.add",
+   "label": "Add to subset",
+   "description": "Adds the given node ids to the current subset (selection); a bare name adds every node of that name.",
+   "effect": "selection",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "ids": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "ids"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "node.activate",
+   "label": "Make a node active",
+   "description": "Makes one node the active node - what the pulse, the open Molecular Structure windows (structure3d), the logbook and the multiplayer view follow; the selection stays. node = a node id (_id) or a name (several copies: the first one; the result says how many). fly: true also flies the camera to it.",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "node": {
+      "type": "string",
+      "minLength": 1
+     },
+     "fly": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "node"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "columns.addFromTsv",
+   "label": "Add node columns",
+   "description": "Adds node columns from a TSV text (first column _id, then columns named with a kind suffix: _n, _c, _a, _kv, _norm). They become temporary columns usable in every window.",
+   "effect": "data",
+   "presentation": "button",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "tsv": {
+      "type": "string",
+      "minLength": 1
+     },
+     "source": {
+      "type": "string"
+     },
+     "descriptions": {
+      "type": "object",
+      "propertyNames": {
+       "type": "string"
+      },
+      "additionalProperties": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "tsv"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "xr.molecule.open",
+   "label": "Open a molecule in AR",
+   "description": "Opens a protein node's 3D structure (AlphaFold) in the AR molecule mode, for everyone in the session who is in AR (it replaces an open one). `node` = the node id or its name (gene). A desktop shows nothing in 3D.",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "node": {
+      "type": "string",
+      "minLength": 1
+     }
+    },
+    "required": [
+     "node"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "xr.molecule.select",
+   "label": "Select a residue of the AR molecule",
+   "description": "Selects a residue (its number) of the open AR molecule for everyone: its side chains, the list row and the detail card; null clears the selection. Never moves the molecule.",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "residue": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": -9007199254740991,
+        "maximum": 9007199254740991
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "required": [
+     "residue"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "xr.molecule.filter",
+   "label": "Filter the AR molecule's residues",
+   "description": "Switches a chip of the open AR molecule's residue list on or off for everyone: `row` consequence (e.g. pathogenic) or type, `key` the chip as the list shows it. A filter that hides the selected residue deselects it.",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+     "row": {
+      "type": "string",
+      "enum": [
+       "consequence",
+       "type"
+      ]
+     },
+     "key": {
+      "type": "string",
+      "minLength": 1
+     },
+     "on": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "row",
+     "key",
+     "on"
+    ],
+    "additionalProperties": false
+   }
+  },
+  {
+   "id": "xr.molecule.close",
+   "label": "Close the AR molecule",
+   "description": "Closes the open AR molecule for everyone (the network comes back).",
+   "effect": "view",
+   "presentation": "direct",
+   "paramsSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+   }
+  }
+ ]
+}

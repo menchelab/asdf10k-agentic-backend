@@ -224,7 +224,14 @@ export const CatalogSettingSchema = z.object({
   /** The agent may read but not change it (settings.set refuses it); it tells the user what to change where. */
   readOnly: z.boolean().optional(),
   /** shared = a change reaches everyone in a multiplayer session; device = this device only (bloom, render). Protocol 2. */
-  scope: z.enum(['shared', 'device']).optional()
+  scope: z.enum(['shared', 'device']).optional(),
+  /**
+   * A dropdown over columns (colour / size attribute ...): it also takes any `columnsOf` column of
+   * these kinds (the columns are in the app context), and `options` keeps only the non-column values
+   * (`original`, `uniform`). Optional, no version bump: an older side ignores it (finding N3).
+   */
+  columnKinds: z.array(z.string()).optional(),
+  columnsOf: z.enum(['node', 'edge']).optional()
 });
 export type CatalogSetting = z.infer<typeof CatalogSettingSchema>;
 export const CatalogWindowSchema = z.object({

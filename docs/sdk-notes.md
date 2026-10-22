@@ -24,8 +24,16 @@ and later in production; the dated list with details is section 15 of
   ToolSearch, WebFetch, WebSearch, Write, mcp__asdf10k__run_app_command` - a name the CLI does not
   have (TodoWrite with the task tools on) is silently left out. Notebooks, subagents, plan mode,
   worktrees and cron tools are off. The aside query passes `tools: []`.
-- `settingSources: ['project']` + `additionalDirectories: [agent-home]`: skills come from
-  `<cwd>/.claude/skills` and `agent-home/.claude/skills` only, not from the user's `~/.claude`.
+- `settingSources: ['project']` + `additionalDirectories: [agent-home]` is **not enough** to keep
+  the skill list to the app's (2026-10-22, finding N4 of the real-agent re-test: `init.skills`
+  listed 23 skills - Claude Code's bundled ones such as update-config, loop, schedule, simplify,
+  and the login's claude.ai-synced skills). Now: `skills: agentSkills()` (the folder names in
+  `agent-home/.claude/skills` + the generated `asdf10k-app-catalog`; a filter on the listing and the
+  Skill tool), `settings.disableBundledSkills: true`, and `settings.skillOverrides` switching off the
+  three built-ins that survive both (`BUILTIN_SKILLS_OFF`: design, doctor, plugin-authoring; SDK
+  0.3.291). Checked with an init-only query (aborted at `init`, no model call):
+  `init.skills` = asdf10k-app-catalog, asdf10k-app, asdf10k-columns, asdf10k-reports. After an SDK
+  update repeat that check and extend `BUILTIN_SKILLS_OFF`.
   `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` because auto memory loads regardless.
 - Without `strictMcpConfig: true` and `settings: { disableClaudeAiConnectors: true }` the account's
   claude.ai connectors are attached to every session.
