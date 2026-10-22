@@ -1,6 +1,6 @@
 ---
 name: asdf10k-columns
-description: Column conventions of asdf10k graph data (nodes.tsv / edges.tsv) - how the name suffix sets the kind, separators of list and key:value columns, node ids, and the rules for new columns you produce. Use when reading the graph files or writing per-node data.
+description: Column conventions of asdf10k graph data (nodes.tsv / edges.tsv) - how the name suffix sets the kind, separators of list and key:value columns, node ids, columns with a special meaning (layouts, residue / ClinVar columns for the 3D structure), and the rules for new columns you produce. Use when reading the graph files or writing per-node data.
 ---
 
 # asdf10k columns
@@ -27,6 +27,28 @@ Rules the app relies on:
 - Numbers use `.` as decimal separator, no thousands separators.
 - Other columns in `nodes.tsv` (`x`, `y`, `z`, `color`, `cluster`, `size`) are the current 3D
   layout and rendering state, not data.
+
+## Columns with a special meaning
+
+Some columns are read by name, or by a name the dataset's `config.json` sets (the dataset author's
+file; you do not change it):
+
+| Column | Meaning |
+|---|---|
+| `x_<name>`, `y_<name>`, `z_<name>` | the extra layouts (`<name>` is the layout name), next to the base `x` / `y` / `z` |
+| `subsets_a` | the subset list library's tags per node |
+| `name` (usually) | the id the tooltips and the 3D structure look up at UniProt / AlphaFold (gene symbol or accession): `config.json` `tooltipFetchIdAttribute` and `window_molecular.fetchIdColumn` |
+| `hl3d` (or `3dhl`, `phosphosites`) | residues to highlight on the protein's AlphaFold structure: `R403,G741` (letter + position on the UniProt canonical sequence) or plain positions `701,18`. `config.json` `window_molecular.highlightColumn` names another column |
+| `clinvar_residue_types` | per residue the variant types, `K670:inversion,I716:SNV\|indel` (`\|` between several); other name via `window_molecular.residueTypesColumn` |
+| `clinvar_residue_consequences` | per residue the consequences (missense, nonsense, frameshift, start-loss, in-frame ...), same format; other name via `window_molecular.residueConsequencesColumn` |
+| `clinvar_pathogenic_residues_n`, `clinvar_structure_residues_n` | counts of those residues per gene |
+
+The residue columns feed the 3D structure window (highlighted residues on the cartoon) and, in AR,
+the molecule mode: the structure opens at the node with the residues as markers and a residue
+list the user filters by consequence and variant type. Residue positions refer to the UniProt
+canonical sequence, the one AlphaFold models; a residue beyond the model is listed but has no
+marker. Very long proteins (TTN) have no single AlphaFold model. When you talk about residues, use
+the same `R403` notation, and read these columns rather than guessing variants.
 
 ## New per-node columns you produce
 
