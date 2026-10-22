@@ -49,7 +49,7 @@ explains the browser setup. Pick one:
 | **Everything on one machine** (testing, a lab workstation) | `npm start` (127.0.0.1:8787) | serve the deployment with its own `python3 server.py`: it forwards `/agent-api/` to `http://127.0.0.1:8787/api`; no config change |
 | **Behind the deployment's web server** (recommended for shared deployments, HTTPS) | `npm start` on the server (127.0.0.1:8787) | reverse-proxy `/agent-api/` to `http://127.0.0.1:8787/api/`; no config key needed |
 | **Your own laptop, hosted HTTPS app** (e.g. at an event; no server access needed) | `npm start` on the laptop | open the app with `?agent=http://localhost:8787/api` - browsers allow an HTTPS page to call `localhost` (Chrome may ask once for local network access) |
-| **Headsets / other devices use your laptop's backend** (hosted HTTPS app, same Wi-Fi) | once: `npm run cert` (mkcert: a certificate for this machine's name and LAN addresses; again after a network change), then `AGENT_HOST=0.0.0.0 npm start` - HTTP on 8787, HTTPS on 8788; give the laptop a fixed address | each device opens the app with `?agent=https://<laptop-ip>:8788/api` (the start-up log prints it) and, once per browser, accepts the certificate: open `https://<laptop-ip>:8788/api/health`, Advanced -> Proceed. In a multiplayer session the others can watch your agent session live ("Share live"), each needing this setup. Without a certificate: the Chrome flag below |
+| **Headsets / other devices use your laptop's backend** (hosted HTTPS app, same Wi-Fi) | once: `npm run cert` (mkcert: a certificate for this machine's name and LAN addresses; again after a network change), then `AGENT_HOST=0.0.0.0 npm start` - HTTP on 8787, HTTPS on 8788; give the laptop a fixed address | each device opens the app with `?agent=https://<laptop-ip>:8788/api` (the start-up log prints it), or types the laptop's address into the Agent window's backend strip and clicks Connect, and, once per browser, accepts the certificate: open `https://<laptop-ip>:8788/api/health`, Advanced -> Proceed. In a multiplayer session the others can watch your agent session live ("Share live"), each needing this setup; the backend strip offers them the backend you use (one click, never applied silently). Without a certificate: the Chrome flag below |
 | **Backend on another machine in a trusted network** | `AGENT_HOST=0.0.0.0 npm start` | `python3 server.py --backend http://<backend-host>:8787/api` (or a web server proxy); `agentBackendUrl` only if the app is served over plain HTTP (see below) |
 
 Rules that bite:
@@ -288,7 +288,8 @@ curl -L -O https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-
   catalog is kept in the session meta for the policy check.
 - `run_app_command` (`src/agent/appTools.ts`): the agent runs an app command. `src/agent/appCommandPolicy.ts`
   allows the commands whose catalog `presentation` is `direct` (`compute`: `rwr.run`, `cluster.run`; the camera / layout
-  actions `nav.*`, `layout.*`); the `card` commands `settings.set`,
+  actions `nav.*`, `layout.*`; the AR molecule commands `xr.molecule.*`); commands the app registers with
+  `agentCallable: false` (`agent.setBackend`) are not in the catalog at all; the `card` commands `settings.set`,
   `window.open`, `window.configure`, `window.close` are refused with a hint to write a card (the
   app renders `asdf10k` blocks and `cmd:` links to them as change cards with Revert; blocks apply
   themselves when the user's auto-accept is on); `selection` and `data` commands are refused with

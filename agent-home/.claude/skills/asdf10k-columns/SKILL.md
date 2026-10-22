@@ -44,7 +44,7 @@ file; you do not change it):
 | `clinvar_pathogenic_residues_n`, `clinvar_structure_residues_n` | counts of those residues per gene |
 
 The residue columns feed the 3D structure window (highlighted residues on the cartoon) and, in AR,
-the molecule mode: the structure opens at the node with the residues as markers and a residue
+the molecule mode (which you can open for them: `xr.molecule.open`, skill `asdf10k-app`): the structure opens at the node with the residues as markers and a residue
 list the user filters by consequence and variant type. Residue positions refer to the UniProt
 canonical sequence, the one AlphaFold models; a residue beyond the model is listed but has no
 marker. Very long proteins (TTN) have no single AlphaFold model. When you talk about residues, use

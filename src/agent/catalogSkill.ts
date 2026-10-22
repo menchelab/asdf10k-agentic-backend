@@ -77,7 +77,7 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
 
   lines.push('## Commands');
   lines.push('');
-  lines.push('Effects: `compute` commands and the camera / layout actions (`nav.*`, `layout.*`) may be run by you (run_app_command); view changes (settings, windows) are cards; `selection` commands (`subset.*`: set, add, expand by one hop, connect, common neighbours, prune leaves, isolate, clear, save to library) and `data` commands are offered to the user as buttons (`cmd:` links, chips, cards). Every action of the app is a command with its own id - there is no menu indirection.');
+  lines.push('Effects: each command heading says how you use it. Commands marked "you run it" - `compute` commands, the camera / layout actions (`nav.*`, `layout.*`), the AR molecule commands (`xr.molecule.*`) - you run with run_app_command; view changes (settings, windows) are cards; `selection` commands (`subset.*`: set, add, expand by one hop, connect, common neighbours, prune leaves, isolate, clear, save to library) and `data` commands are offered to the user as buttons (`cmd:` links, chips, cards). Every action of the app is a command with its own id - there is no menu indirection.');
   lines.push('');
   for (const c of catalog.commands) {
     lines.push(`### \`${c.id}\` - ${c.label} (${c.effect}, ${PRESENTATION_TEXT[presentationOf(c)]})`);

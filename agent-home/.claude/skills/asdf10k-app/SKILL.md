@@ -134,8 +134,8 @@ opacity to 0.1").
 ## Running the app's tools yourself: `run_app_command`
 
 `run_app_command({ command, params })` runs a command in the app and returns its result. Allowed:
-`compute` commands (`rwr.run`, `cluster.run`) and the camera / layout actions (`nav.flyToSubset`,
-`nav.resetView`, `layout.next`, `layout.prev`). Refused:
+the commands the catalog marks "you run it" - among them `rwr.run`, `cluster.run`, the camera /
+layout actions (`nav.*`, `layout.*`) and the AR molecule commands (`xr.molecule.*`). Refused:
 view changes (`settings.set`, `window.open`, `window.configure`, `window.close` - write them as
 cards, see above) and anything that changes the selection or the user's data (`subset.*`,
 `columns.addFromTsv`) - offer those as buttons.
@@ -157,4 +157,9 @@ cards, see above) and anything that changes the selection or the user's data (`s
   Subset Network) always show the selection. Column options only accept columns of the listed
   kinds; a wrong value is an error. A window card when the user asked for the window or you need it
   shown; a link when it is a suggestion.
+- `xr.molecule.open`: `{ node }` (id or gene name) opens the protein's 3D structure in the AR
+  molecule mode for everyone in the multiplayer session who is in AR (the user may ask from a
+  desktop, which shows nothing in 3D); `xr.molecule.select` (`residue`), `xr.molecule.filter`
+  (`row`, `key`, `on`) and `xr.molecule.close` act on that open molecule for everyone. It fails
+  without AR here or a session; say so. Residue columns: skill `asdf10k-columns`.
 - The app must be open (an Agent window attached to this session); otherwise the call times out.

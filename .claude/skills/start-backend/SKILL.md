@@ -57,6 +57,8 @@ unless the log is unavailable. The LAN address can be checked with `ipconfig get
      trusted on this laptop only): **Advanced -> Proceed**; JSON appears.
    - then open the app link. On a Quest, type the URL in Quest Browser's address bar.
    The exception lasts a while; when the Agent window later says "not reachable", repeat this.
+   Instead of a link, the user can type `<lan-ip>` into the Agent window's backend strip and click
+   Connect (the app fills in https and 8788; the strip links the certificate page when needed).
    **No certificate** (mkcert unavailable): `<app URL>/?agent=http://<lan-ip>:8787/api` plus, once
    per browser, `chrome://flags/#unsafely-treat-insecure-origin-as-secure` -> `http://<lan-ip>:8787`,
    Enabled, relaunch (Chromium browsers only; Safari has no such flag).
@@ -68,7 +70,9 @@ unless the log is unavailable. The LAN address can be checked with `ipconfig get
    lease means a new IP: `npm run cert`, restart, accept again, new links (a DHCP reservation or
    your own router avoids this).
 5. **Multiplayer:** in a session, the Agent window's "Share live" (on by default) shows the agent
-   session to the others read-only; each of them needs the link and the certificate step from step 2.
+   session to the others read-only; each of them needs the certificate step from step 2. Their
+   backend strip offers the backend this user is on ("<name> uses backend ... · Use it"), so a link
+   is optional.
 6. **Security:** no authentication - anyone on the network can use this backend (and the Claude
    account behind it). Only on networks you trust; stop it afterwards.
 

@@ -33,8 +33,8 @@ the Chrome insecure-origin flag only without a certificate).
 - **This repo is public** (menchelab/asdf10k-agentic-backend, MIT) since 2026-10-16: no secrets,
   hostnames, personal paths or account details in code, docs, fixtures or commit messages.
 - **Commit continuously**, one commit per verified step (typecheck + tests, and a browser check in
-  the app when the change is visible there). No `Co-Authored-By` or other trailers. Milestones get an
-  annotated tag `phase-N`; releases are `npm run release` (tags `vX.Y.Z`, GitHub release). Never push
+  the app when the change is visible there). No `Co-Authored-By` or other trailers. Releases are
+  `npm run release` (tags `vX.Y.Z`, GitHub release); the old `phase-N` tags are history. Never push
   (the user pushes and releases).
 - **A restart stops every running session's run** (shutdown emits an error line and ends the run in
   the log; the user has to send again). Do not restart while someone is mid-run unless asked; say
@@ -77,7 +77,8 @@ the Chrome insecure-origin flag only without a certificate).
   `direct` (protocol 2, set by the app's command registry: `view` / `compute` commands); `card`
   commands (`settings.set`, `window.*`) must be cards, `button` commands (selection, data) buttons
   (`src/agent/appCommandPolicy.ts`; a protocol 1 catalog without `presentation` is derived from
-  `effect` as before). The app checks an `app_request` the same way and enforces its own rules
+  `effect` as before). Commands the app marks `agentCallable: false` (`agent.setBackend`) never reach
+  the catalog. The app checks an `app_request` the same way and enforces its own rules
   (read-only `highlight.*`).
 - **Stall watchdog**: no SDK message for `RUN_STALL_WARN_S` -> `status: waiting`; after
   `RUN_STALL_ABORT_MIN` the run is stopped. On startup `init()` ends runs left open in any log.
