@@ -8,7 +8,11 @@ and later in production; the dated list with details is section 15 of
 ## Login, options
 
 - The CLI login works from the SDK: `init.apiKeySource` is `none` (claude.ai OAuth), default model
-  `claude-opus-5-5`. `total_cost_usd` is an estimate, nothing is billed per token.
+  `claude-opus-5-5`. `total_cost_usd` is an estimate, nothing is billed per token. It is the
+  **conversation's running total**, not the turn's (the phase 0 fixture: 0.083, 0.152, 0.177, 0.196,
+  0.204 over one live session), so `run_end.costUsd` is the difference to the previous result and
+  `run_end.sessionCostUsd` the total (`src/agent/runCost.ts`, since 2026-10-22; a reopened session
+  starts from the log's last total).
 - `permissionMode: 'bypassPermissions'` + `allowDangerouslySkipPermissions: true` run tools without
   prompts; the process refuses to start as root. `AskUserQuestion` is disallowed (it would fall
   through to a prompt).

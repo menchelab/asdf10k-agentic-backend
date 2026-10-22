@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import { EventNormalizer, toolLabel, summarizeCommand } from '../src/agent/EventNormalizer.js';
 import type { AgentEventInput } from '../src/protocol.js';
+import { costBaseFromLog } from '../src/agent/runCost.js';
 
 const fixturesDir = resolve(import.meta.dirname, '../spike/fixtures');
 
@@ -131,5 +132,39 @@ describe('summarizeCommand', () => {
     expect(summarizeCommand('head -3 input/selection.tsv')).toBe('Read selection.tsv');
     expect(summarizeCommand('ls out/')).toBe('List files');
     expect(summarizeCommand('mkdir -p out/plots')).toBe('Create folder out/plots');
+  });
+});
+
+describe('run cost: the SDK reports a running total, run_end carries the run\'s share', () => {
+  const result = (total: number): SDKMessage => ({ type: 'result', subtype: 'success', total_cost_usd: total, duration_ms: 10, num_turns: 1, session_id: 's' }) as unknown as SDKMessage;
+  const ends = (events: AgentEventInput[]): Array<{ costUsd: number; sessionCostUsd?: number }> =>
+    events.filter((e) => e.type === 'run_end').map((e) => {
+      const end = e as Extract<AgentEventInput, { type: 'run_end' }>;
+      return { costUsd: end.costUsd, ...(end.sessionCostUsd !== undefined ? { sessionCostUsd: end.sessionCostUsd } : {}) };
+    });
+
+  it('two results 0.16 / 0.25 -> 0.16, 0.09 (and the totals)', () => {
+    expect(ends(run([result(0.16), result(0.25)]))).toEqual([{ costUsd: 0.16, sessionCostUsd: 0.16 }, { costUsd: 0.09, sessionCostUsd: 0.25 }]);
+  });
+
+  it('the recorded live session: per-run costs add up to the last total', () => {
+    const live = fixture((f) => !f.includes('interrupt')).filter((r) => r.tag === 'live').map((r) => r.msg);
+    const e = ends(run(live));
+    expect(e.length).toBeGreaterThan(1);
+    expect(e.reduce((s, x) => s + x.costUsd, 0)).toBeCloseTo(e[e.length - 1]!.sessionCostUsd!, 5);
+    for (const x of e) expect(x.costUsd).toBeGreaterThanOrEqual(0);
+  });
+
+  it('a resumed session starts from the log\'s last total; a counter that started over counts whole', () => {
+    const events: AgentEventInput[] = [];
+    const n = new EventNormalizer((ev) => events.push(ev), 'test', 2, costBaseFromLog([{ type: 'run_end', costUsd: 0.1, sessionCostUsd: 0.4 }]));
+    n.handle(result(0.55));
+    n.handle(result(0.05)); // below the base: a fresh SDK counter
+    expect(ends(events).map((x) => x.costUsd)).toEqual([0.15, 0.05]);
+  });
+
+  it('the base from a log written before per-run costs: the largest (running) total', () => {
+    expect(costBaseFromLog([{ type: 'run_end', costUsd: 0.16 }, { type: 'run_start' }, { type: 'run_end', costUsd: 0.25 }])).toBe(0.25);
+    expect(costBaseFromLog([])).toBe(0);
   });
 });

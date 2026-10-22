@@ -1,8 +1,9 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { composePrompt, renderAppContext, writeAppInputs } from '../src/agent/appContext.js';
+import { composePrompt, renderAppContext, renderIdFormat, writeAppInputs } from '../src/agent/appContext.js';
+import { readGraphIndex } from '../src/agent/graphFiles.js';
 import type { AppSnapshot } from '../src/protocol.js';
 
 const snapshot: AppSnapshot = {
@@ -71,5 +72,34 @@ describe('writeAppInputs', () => {
     expect(readFileSync(join(ws, 'input/subset_library.tsv'), 'utf8')).toBe('name\tsize\tids\nhubs\t2\tC3_p CR1_p\n');
     const previous = await writeAppInputs(ws, { ...snapshot, graphHash: 'next' });
     expect(previous?.graphHash).toBe('abc');
+  });
+});
+
+describe('node id format line', () => {
+  const dirs: string[] = [];
+  afterEach(() => {
+    for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true });
+  });
+  const graphOf = (rows: string[]): ReturnType<typeof readGraphIndex> => {
+    const ws = mkdtempSync(join(tmpdir(), 'ws-'));
+    dirs.push(ws);
+    mkdirSync(join(ws, 'input'));
+    writeFileSync(join(ws, 'input', 'nodes.tsv'), ['_id\tname\tdegree_n', ...rows].join('\n') + '\n');
+    return readGraphIndex(ws);
+  };
+
+  it('multiplex: id examples and the repeat note', () => {
+    const g = graphOf(['HP:MYH7\tMYH7\t3', 'HP:TTN\tTTN\t2', 'coex_HRV:MYH7\tMYH7\t1', 'coex_HRV:TTN\tTTN\t1', 'PPI:MYH7\tMYH7\t5', 'PPI:ACTC1\tACTC1\t4']);
+    const line = renderIdFormat(g);
+    expect(line).toMatch(/^node ids \(_id\) look like: HP:MYH7, /);
+    expect(line).toContain('the name column repeats (3 names on 6 nodes - a name is several copies; selecting a name selects every copy)');
+    expect(renderAppContext(snapshot, null, [], g)).toContain(line!);
+  });
+
+  it('unique names: examples only, no repeat note; no graph: no line', () => {
+    const line = renderIdFormat(graphOf(['A1BG_p\tA1BG\t1', 'C3_p\tC3\t2']));
+    expect(line).toBe('node ids (_id) look like: A1BG_p, C3_p');
+    expect(renderIdFormat(null)).toBeNull();
+    expect(renderAppContext(snapshot, null)).not.toContain('node ids (_id)');
   });
 });

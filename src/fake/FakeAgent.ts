@@ -11,6 +11,10 @@ import { join } from 'node:path';
 import type { AgentEventInput, TodoItem } from '../protocol.js';
 import type { AgentRunner } from '../agent/liveQuery.js';
 import type { EmitFn } from '../agent/EventNormalizer.js';
+import { RunCost } from '../agent/runCost.js';
+
+/** The fake's made-up cost per run (USD), so the window's per-run cost shows offline. */
+const FAKE_RUN_COST = 0.012;
 
 const PLOT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="160" viewBox="0 0 320 160"><rect width="320" height="160" fill="#1b1b1b"/><g fill="#7fc8ff"><rect x="30" y="90" width="40" height="50"/><rect x="90" y="60" width="40" height="80"/><rect x="150" y="30" width="40" height="110"/><rect x="210" y="75" width="40" height="65"/></g><text x="160" y="20" fill="#98fb98" font-family="monospace" font-size="12" text-anchor="middle">fake plot</text></svg>`;
 
@@ -20,6 +24,8 @@ export class FakeAgent implements AgentRunner {
   private runId: string | null = null;
   private runStartedAt = 0;
   private pending: string[] = [];
+  private fakeTotal = 0;
+  private readonly cost = new RunCost();
 
   constructor(
     private readonly emit: EmitFn,
@@ -121,6 +127,15 @@ flowchart LR
     at(200, () => e({ type: 'status', state: 'requesting' }, false));
 
     const asked = text.replace(/^<app_context>[\s\S]*?<\/app_context>\s*/, '');
+    // "/md <markdown>": the answer is that markdown, nothing else (scripted window checks, e2e)
+    const scripted = /^\/md\s/.test(asked) ? asked.replace(/^\/md\s/, '') : null;
+    if (scripted !== null) {
+      const blockId = `${runId}:1:0`;
+      at(100, () => e({ type: 'text', runId, blockId, text: scripted }));
+      at(100, () => this.finish('success'));
+      this.timers = steps.map(([ms, fn]) => setTimeout(fn, ms));
+      return;
+    }
     const answer = `You asked: *${asked.replace(/[*_`]/g, '').slice(0, 200)}*
 
 This is the **fake agent** (\`AGENT_FAKE=1\`): no Claude call was made. Inline markdown with an image and actions:
@@ -203,7 +218,9 @@ A window card (applies itself with auto-accept, has Revert):
   private finish(status: 'success' | 'interrupted'): void {
     const runId = this.runId;
     if (!runId) return;
-    this.emit({ type: 'run_end', runId, status, answeredMessageIds: this.pending.splice(0), durationMs: Date.now() - this.runStartedAt, turns: 3, costUsd: 0 });
+    // a made-up SDK running total (FAKE_RUN_COST per run) through the same per-run split as a real session
+    this.fakeTotal += FAKE_RUN_COST;
+    this.emit({ type: 'run_end', runId, status, answeredMessageIds: this.pending.splice(0), durationMs: Date.now() - this.runStartedAt, turns: 3, ...this.cost.next(this.fakeTotal) });
     this.runId = null;
   }
 

@@ -126,8 +126,10 @@ export const AgentEventSchema = z.discriminatedUnion('type', [
     answeredMessageIds: z.array(z.string()),
     durationMs: z.number(),
     turns: z.number(),
-    /** The SDK's estimate; with a CLI login nothing is billed per token. */
-    costUsd: z.number()
+    /** The SDK's estimate for this run (since 2026-10-22; before: the session's running total); with a CLI login nothing is billed per token. */
+    costUsd: z.number(),
+    /** The SDK's running total for the session (optional, since 2026-10-22). */
+    sessionCostUsd: z.number().optional()
   }),
   z.object({ ...base, type: z.literal('error'), message: z.string() })
 ]);

@@ -8,6 +8,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { AppSnapshotSchema, type AppSnapshot, type ColumnInfo } from '../protocol.js';
+import type { GraphIndex } from './graphFiles.js';
 
 const MAX_IDS_IN_PROMPT = 20;
 const MAX_COLUMNS_WITH_STATS = 60;
@@ -45,10 +46,12 @@ export async function writeAppInputs(workspace: string, snapshot: AppSnapshot): 
 }
 
 /** The block the agent sees before the user's text. `userActions` = what the user did with cards / buttons since the last message. */
-export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | null, userActions: string[] = []): string {
+export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | null, userActions: string[] = [], graph?: GraphIndex | null): string {
   const lines: string[] = [];
   lines.push(`dataset: ${snapshot.dataset} - ${snapshot.nodeCount} nodes, ${snapshot.edgeCount} edges, graph hash ${snapshot.graphHash}`);
   lines.push('files: input/nodes.tsv (all nodes, every column, _id = node id), input/edges.tsv (source, target = node ids), input/selection.tsv, input/subset_library.tsv, input/app_context.json (this context in full)');
+  const ids = renderIdFormat(graph);
+  if (ids) lines.push(ids);
 
   lines.push(`node columns (${snapshot.nodeColumns.length}; * = added or changed in the app, not in the loaded file):`);
   lines.push(...renderColumns(snapshot.nodeColumns, snapshot.nodeCount));
@@ -83,6 +86,16 @@ export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | 
   if (userActions.length > 0) lines.push(`since your last message the user: ${userActions.join('; ')}`);
 
   return `<app_context>\n${lines.join('\n')}\n</app_context>`;
+}
+
+/** `node ids (_id) look like: HP:MYH7, ...`, plus the repeat note when names stand for several nodes (multiplex data). */
+export function renderIdFormat(graph: GraphIndex | null | undefined): string | null {
+  if (!graph || graph.idExamples.length === 0) return null;
+  const n = graph.names;
+  const repeats = n && n.distinct > 0 && n.distinct < n.nodes
+    ? `; the name column repeats (${n.distinct} names on ${n.nodes} nodes - a name is several copies; selecting a name selects every copy)`
+    : '';
+  return `node ids (_id) look like: ${graph.idExamples.join(', ')}${repeats}`;
 }
 
 export function composePrompt(text: string, context: string): string {

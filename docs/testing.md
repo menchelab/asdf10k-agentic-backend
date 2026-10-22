@@ -15,7 +15,7 @@ the BigBrainz20k window from the "+" menu). The app's `window.__perf.handles` ha
 
 ```bash
 npm run dev                     # watch mode, restarts on save (ends running runs!)
-AGENT_FAKE=1 npm run dev        # scripted agent, no Claude calls
+AGENT_FAKE=1 npm run dev        # scripted agent, no Claude calls; a message "/md <markdown>" is answered with exactly that markdown
 npx tsx src/server.ts > /tmp/agent-backend.log 2>&1 &   # manual, no watch: restart yourself after edits
 curl -s localhost:8787/api/health
 ```

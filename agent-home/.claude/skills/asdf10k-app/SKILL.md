@@ -41,8 +41,16 @@ says `since your last message: ...` when the graph files, the selection or the l
 
 ## Actions: buttons the user can click
 
-A link whose URL starts with `cmd:` becomes a button. Query values are URL-encoded; lists are
-comma-separated; for long lists write the ids to a file and use `idsFile`.
+A link whose URL starts with `cmd:` becomes a button. Query values are URL-encoded: `%20` (or
+`+`) for a space, `%26` for `&`, `%23` for `#` - e.g.
+`[Save as "top hubs"](cmd:subset.saveToLibrary?name=top%20hubs&ids=HP:MYH7,HP:TTN)`. Lists are
+comma-separated; more than ~50 ids, or any id with special characters: write
+`out/subsets/<name>.txt` (one id per line) and use `idsFile=`. The ```` ```asdf10k ```` subset
+block takes a JSON array and needs no encoding.
+
+Node ids: write `_id`s (the `node ids (_id) look like:` line in the context shows the format, e.g.
+`<layer>:<gene>` on multiplex data). A bare name is accepted too and means **every copy** of that
+name (all layers); check `input/nodes.tsv` when unsure.
 
 | Write | The user gets |
 |---|---|

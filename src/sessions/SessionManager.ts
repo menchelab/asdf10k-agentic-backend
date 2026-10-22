@@ -16,6 +16,8 @@ import { EventNormalizer } from '../agent/EventNormalizer.js';
 import { LiveQuery, type AgentRunner } from '../agent/liveQuery.js';
 import { buildAgentOptions } from '../agent/agentOptions.js';
 import { composePrompt, renderAppContext, renderUserActions, writeAppInputs } from '../agent/appContext.js';
+import { readGraphIndex } from '../agent/graphFiles.js';
+import { costBaseFromLog } from '../agent/runCost.js';
 import { createAppToolsServer } from '../agent/appTools.js';
 import { writeCatalogSkill } from '../agent/catalogSkill.js';
 import { writeDataDescription } from '../agent/dataDescription.js';
@@ -236,7 +238,7 @@ export class SessionManager {
     this.feedback.delete(id);
     if (snapshot) {
       const previous = await writeAppInputs(this.workspaceDir(id), snapshot);
-      let context = renderAppContext(snapshot, previous, userActions);
+      let context = renderAppContext(snapshot, previous, userActions, readGraphIndex(this.workspaceDir(id)));
       if (snapshot.graphHash !== meta.graphHash) {
         context = context.replace(
           '</app_context>',
@@ -343,8 +345,10 @@ export class SessionManager {
     if (config.fake) {
       session.runner = new FakeAgent(emit, this.workspaceDir(id), id, meta.dataset);
     } else {
-      const runsSoFar = (await log.read(0)).filter((e) => e.type === 'run_start').length;
-      const normalizer = new EventNormalizer(emit, id.slice(0, 8), runsSoFar);
+      const earlier = await log.read(0);
+      const runsSoFar = earlier.filter((e) => e.type === 'run_start').length;
+      // run_end.costUsd is per run: the SDK's running total continues from the log's last one
+      const normalizer = new EventNormalizer(emit, id.slice(0, 8), runsSoFar, costBaseFromLog(earlier));
       session.normalizer = normalizer;
       const tools = createAppToolsServer({
         sessionId: id,

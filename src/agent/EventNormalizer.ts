@@ -4,6 +4,7 @@
  * start times, the task list. Message shapes: see the phase 0 fixtures in spike/fixtures.
  */
 
+import { RunCost } from './runCost.js';
 import type { SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import type { AgentEventInput, RunStatus, TodoItem } from '../protocol.js';
 
@@ -34,18 +35,23 @@ export class EventNormalizer {
   private readonly toolStarts = new Map<string, { name: string; startedAt: number }>();
   private readonly tasks = new Map<string, TodoItem>();
   private readonly pendingTaskCreates = new Map<string, { subject: string; activeForm?: string }>();
+  /** The SDK reports the conversation's running total: run_end carries the run's own share (src/agent/runCost.ts). */
+  private readonly cost: RunCost;
 
   /**
    * @param runsSoFar run_start events already in the session's log: run ids continue after them, so
    * a session re-opened after a backend restart does not reuse `r1` (its text would land in the
    * old run's block in the window).
+   * @param costSoFar the session's SDK cost total before this live session (costBaseFromLog).
    */
   constructor(
     private readonly emit: EmitFn,
     private readonly runPrefix: string,
-    runsSoFar = 0
+    runsSoFar = 0,
+    costSoFar = 0
   ) {
     this.runCounter = runsSoFar;
+    this.cost = new RunCost(costSoFar);
   }
 
   get running(): boolean {
@@ -112,7 +118,7 @@ export class EventNormalizer {
     return this.runId ?? this.startRun(this.pendingMessageIds.length > 0 ? 'user' : 'background_task');
   }
 
-  private endRun(status: RunStatus, stats: { durationMs: number; turns: number; costUsd: number }, answered: string[]): void {
+  private endRun(status: RunStatus, stats: { durationMs: number; turns: number; costUsd: number; sessionCostUsd?: number }, answered: string[]): void {
     if (!this.runId) return;
     this.emit({ type: 'run_end', runId: this.runId, status, answeredMessageIds: answered, ...stats });
     const done = new Set(answered);
@@ -297,7 +303,7 @@ export class EventNormalizer {
     const echoed = Array.isArray(m.user_message_uuids) ? strings(m.user_message_uuids) : typeof m.user_message_uuid === 'string' ? [m.user_message_uuid] : [];
     const known = echoed.filter((id) => this.pendingMessageIds.includes(id));
     const answered = known.length > 0 ? known : [...this.pendingMessageIds];
-    this.endRun(status, { durationMs: num(m.duration_ms), turns: num(m.num_turns), costUsd: num(m.total_cost_usd) }, answered);
+    this.endRun(status, { durationMs: num(m.duration_ms), turns: num(m.num_turns), ...this.cost.next(num(m.total_cost_usd)) }, answered);
     if (status === 'error' && Array.isArray(m.errors) && m.errors.length > 0) this.emit({ type: 'error', message: strings(m.errors).join(' | ') });
   }
 }
