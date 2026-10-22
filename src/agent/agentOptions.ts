@@ -8,6 +8,9 @@ import { config } from '../config.js';
 import { SYSTEM_PROMPT_APPEND } from './systemPrompt.js';
 import { readDataDescription, renderDataDescription } from './dataDescription.js';
 
+/** The base set of built-in tools (SDK `tools`). */
+export const AGENT_TOOLS = ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'Skill', 'TaskCreate', 'TaskUpdate', 'TaskList', 'TaskGet', 'TodoWrite', 'WebFetch', 'WebSearch', 'ToolSearch'];
+
 export function buildAgentOptions(workspace: string, resume: string | undefined, mcpServers: Record<string, McpServerConfig>): Options {
   return {
     cwd: workspace,
@@ -23,6 +26,12 @@ export function buildAgentOptions(workspace: string, resume: string | undefined,
     skills: 'all',
     permissionMode: 'bypassPermissions',
     allowDangerouslySkipPermissions: true,
+    // The built-in tools the agent needs (plan asdf10k/docs/plans/agent-window-fixes-2026-10-22.md, 2h):
+    // files, shell, search, skills, the task list (TaskCreate / TaskUpdate with CLAUDE_CODE_ENABLE_TODO_TOOLS,
+    // TodoWrite on older CLIs), web lookups, and ToolSearch for deferred MCP tools. The asdf10k tools
+    // (mcp__asdf10k__*) come from mcpServers. Everything else (notebooks, subagents, plan mode,
+    // worktrees, cron, ...) is off.
+    tools: AGENT_TOOLS,
     // Would fall through to a permission prompt even in bypass mode (a question card is a later feature).
     disallowedTools: ['AskUserQuestion'],
     includePartialMessages: true,

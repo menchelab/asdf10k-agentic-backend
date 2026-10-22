@@ -53,6 +53,12 @@ describe('renderAppContext', () => {
     expect(block).toContain('since your last message the user: saved subset hubs_2 (12 nodes); added columns agent_x_n');
   });
 
+  it('cards: line from the auto-accept toggle (protocol 3); none from an older app', () => {
+    expect(renderAppContext({ ...snapshot, autoAccept: true }, null)).toContain('cards: auto-accepted');
+    expect(renderAppContext({ ...snapshot, autoAccept: false }, null)).toContain('cards: the user accepts by hand');
+    expect(renderAppContext(snapshot, null)).not.toContain('cards:');
+  });
+
   it('composes the prompt with the block first', () => {
     expect(composePrompt('hi', '<app_context>\nx\n</app_context>')).toBe('<app_context>\nx\n</app_context>\n\nhi');
   });

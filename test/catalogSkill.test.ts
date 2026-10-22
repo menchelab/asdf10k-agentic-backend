@@ -41,4 +41,36 @@ describe('renderCatalogSkill', () => {
     expect(md).toContain('### `rwr.run` - Random walk (compute, you run it)');
     expect(md).not.toContain('$schema');
   });
+
+  it('protocol 3: column options by kind with the built-ins, one paragraph on kinds; enums keep values; schema noise dropped', () => {
+    const md = renderCatalogSkill({
+      ...catalog,
+      windows: [{ type: 'subset-table', label: 'Subset table', purpose: 'table [subset]', options: [
+        { key: 'selectedAttributes', kind: 'columns', values: ['label'], columnKinds: ['numeric', 'categorical', 'text'] },
+        { key: 'sortDir', kind: 'enum', values: ['asc', 'desc'] }
+      ] }, { type: 'enrichment', label: 'Enrichment', options: [{ key: 'selectedColumn', kind: 'column', required: true, columnKinds: ['array', 'kv'] }] }],
+      commands: [{ id: 'subset.set', label: 'Set', description: 'd', effect: 'selection', paramsSchema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } }, additionalProperties: false } }]
+    });
+    expect(md).toContain('`selectedAttributes` (columns: numeric / category / text; also: label); `sortDir` (enum: asc / desc)');
+    expect(md).toContain('`selectedColumn` (required column: list / key:value)');
+    expect(md).toContain('Column options: `column: numeric / normalized` means any **node column**');
+    expect(md).not.toContain('additionalProperties');
+  });
+
+  it('a protocol-2 catalog (values per column option) still renders the values, without the kinds paragraph', () => {
+    const md = renderCatalogSkill(catalog);
+    expect(md).toContain('`selectedColumn` (column: degree_n / layer_c)');
+    expect(md).not.toContain('Column options:');
+  });
+
+  it('size: 15 windows over 300 columns stay small by kind (protocol 3), not per value (protocol 2)', () => {
+    const columns = Array.from({ length: 300 }, (_, i) => `column_number_${i}_n`);
+    const win = (i: number, p3: boolean): AppCatalog['windows'][number] => ({
+      type: `w${i}`, label: `Window ${i}`, purpose: 'something [global-or-subset]',
+      options: [0, 1, 2].map((k) => (p3 ? { key: `col${k}`, kind: 'column', columnKinds: ['numeric', 'normalized'] } : { key: `col${k}`, kind: 'column', values: columns }))
+    });
+    const size = (p3: boolean): number => renderCatalogSkill({ ...catalog, windows: Array.from({ length: 15 }, (_, i) => win(i, p3)) }).length;
+    expect(size(true)).toBeLessThan(15_000);
+    expect(size(false)).toBeGreaterThan(200_000);
+  });
 });

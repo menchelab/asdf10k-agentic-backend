@@ -251,7 +251,8 @@ export class SessionManager {
     }
     const messageId = randomUUID();
     session.log.append({ type: 'user_message', messageId, text });
-    await this.updateMeta(id, (m) => ({ ...m, updatedAt: Date.now() }));
+    // the first message names a session that still has its generated "<dataset> <stamp>" title
+    await this.updateMeta(id, (m) => ({ ...m, ...(isGeneratedTitle(m.title, m.dataset) ? { title: titleFromMessage(text) || m.title } : {}), updatedAt: Date.now() }));
     session.normalizer?.noteUserMessage(messageId);
     session.runner.push(prompt, messageId);
     this.touch(id, session);
@@ -471,4 +472,18 @@ export class SessionManager {
     await mkdir(this.sessionDir(meta.id), { recursive: true });
     await writeFile(join(this.sessionDir(meta.id), 'meta.json'), JSON.stringify(meta, null, 2));
   }
+}
+
+/** The title `create` gives a session without one: `<dataset> 2026-10-06 07:37`. */
+export function isGeneratedTitle(title: string, dataset: string): boolean {
+  return title.startsWith(`${dataset} `) && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(title.slice(dataset.length + 1));
+}
+
+/** A session title from the first user message: its first line, whitespace collapsed, at most 60 characters (cut at a word). */
+export function titleFromMessage(text: string): string {
+  const line = (text.split('\n').find((l) => l.trim()) ?? '').replace(/\s+/g, ' ').trim();
+  if (line.length <= 60) return line;
+  const cut = line.slice(0, 59);
+  const space = cut.lastIndexOf(' ');
+  return `${space > 30 ? cut.slice(0, space) : cut}…`;
 }

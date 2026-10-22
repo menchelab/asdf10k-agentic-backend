@@ -23,7 +23,7 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
   lines.push('');
   lines.push('# App catalog (generated)');
   lines.push('');
-  lines.push('Current values of the main viz settings are in the `<app_context>` block of every message (`viz:`); open windows are listed there as `type#id (options)`. View changes are **cards**, not tool calls: a fenced `asdf10k` block is a change the app applies at once when the user\'s auto-accept is on (the default) - the user sees what changed and can Revert; a `cmd:` link to the same command is an offer the user clicks. Never write your own "revert" / "undo" links: every card has Revert.');
+  lines.push('Current values of the main viz settings are in the `<app_context>` block of every message (`viz:`); open windows are listed there as `type#id (options)`. View changes are **cards**, not tool calls: a fenced `asdf10k` block is a change the app applies at once when the user\'s auto-accept is on (the `cards:` line of the app context says; off by default) - the user sees what changed and can Revert; a `cmd:` link to the same command is an offer the user clicks. Never write your own "revert" / "undo" links: every card has Revert.');
   lines.push('');
   lines.push('```asdf10k');
   lines.push('{"type":"settings","label":"Colour by RWR probability, symlog","changes":[{"id":"nodes.colorAttribute","value":"rwr_x_probability_n"},{"id":"nodes.colorMethod","value":"symlog"}]}');
@@ -67,17 +67,21 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
   lines.push('');
   lines.push('Options marked **required** must be given (Enrichment, Distributions, Heatmap, Scatter, UpSet and the meta networks need their column - without it the window opens empty and `window.open` refuses). Scope (in brackets after the purpose): most analysis windows have a **G / S toggle** - `global` = all nodes of the graph, `subset` = the current selection (the highlighted nodes; the window follows selection changes unless `frozen`). `[global-or-subset]` windows take `useGlobal` (true = G, false = S; the default is in the option text), `[subset]` windows always show the selection (an empty selection gives an empty window; Enrichment compares the selection with the whole graph as background), `[global]` windows ignore the selection, `[n/a]` windows are tools. When the user asks about "my selection", open the window with `useGlobal=false`; for the whole graph with `useGlobal=true`.');
   lines.push('');
+  if (catalog.windows.some((w) => w.options?.some((o) => o.columnKinds))) {
+    lines.push('Column options: `column: numeric / normalized` means any **node column** of those kinds (category = `_c`, list = `_a`, key:value = `_kv`, category key:value = `_c_kv`, numeric = `_n`, normalized = `_norm`, text = no suffix) - the columns with their kinds are in the `node columns` list of every message\'s `<app_context>`; `also: label` names the window\'s own built-in columns. `columns` takes a list.');
+    lines.push('');
+  }
   lines.push('| type | label | purpose | options |');
   lines.push('|---|---|---|---|');
   for (const w of catalog.windows) {
-    const options = (w.options ?? []).map((o) => `\`${o.key}\` (${o.required ? 'required ' : ''}${o.kind}${o.values ? `: ${o.values.join(' / ')}` : ''})${o.description ? ` - ${o.description}` : ''}`).join('; ');
+    const options = (w.options ?? []).map((o) => `\`${o.key}\` (${o.required ? 'required ' : ''}${optionDetail(o)})${o.description ? ` - ${o.description}` : ''}`).join('; ');
     lines.push(`| \`${w.type}\` | ${w.label} | ${w.purpose ?? ''} | ${options} |`);
   }
   lines.push('');
 
   lines.push('## Commands');
   lines.push('');
-  lines.push('Effects: each command heading says how you use it. Commands marked "you run it" - `compute` commands, the camera / layout actions (`nav.*`, `layout.*`), the AR molecule commands (`xr.molecule.*`) - you run with run_app_command; view changes (settings, windows) are cards; `selection` commands (`subset.*`: set, add, expand by one hop, connect, common neighbours, prune leaves, isolate, clear, save to library) and `data` commands are offered to the user as buttons (`cmd:` links, chips, cards). Every action of the app is a command with its own id - there is no menu indirection.');
+  lines.push('Effects: each command heading says how you use it. Commands marked "you run it" - `compute` commands, the camera / layout actions (`nav.*`, `layout.*`), `node.activate` (the active node: pulse, Molecular Structure windows), the AR molecule commands (`xr.molecule.*`) - you run with run_app_command; view changes (settings, windows) are cards; `selection` commands (`subset.*`: set, add, expand by one hop, connect, common neighbours, prune leaves, isolate, clear, save to library) and `data` commands are offered to the user as buttons (`cmd:` links, chips, cards). Every action of the app is a command with its own id - there is no menu indirection.');
   lines.push('');
   for (const c of catalog.commands) {
     lines.push(`### \`${c.id}\` - ${c.label} (${c.effect}, ${PRESENTATION_TEXT[presentationOf(c)]})`);
@@ -92,10 +96,31 @@ export function renderCatalogSkill(catalog: AppCatalog): string {
   return lines.join('\n');
 }
 
-/** Drops the `$schema` noise from a zod JSON Schema. */
+/** Column kind -> the words the app context uses for it. */
+const KIND_WORDS: Record<string, string> = { categorical: 'category', array: 'list', kv: 'key:value', categorical_kv: 'category key:value' };
+
+/** `column: numeric / category` (protocol 3, by kind; `also:` the built-ins), else the listed values (enums, edge columns, protocol 2). */
+function optionDetail(o: NonNullable<AppCatalog['windows'][number]['options']>[number]): string {
+  if (o.columnKinds) {
+    const kinds = o.columnKinds.map((k) => KIND_WORDS[k] ?? k).join(' / ');
+    return `${o.kind}: ${kinds}${o.values?.length ? `; also: ${o.values.join(' / ')}` : ''}`;
+  }
+  return `${o.kind}${o.values ? `: ${o.values.join(' / ')}` : ''}`;
+}
+
+/** Drops the noise from a zod JSON Schema: `$schema`, and `additionalProperties: false` at any depth (the default for the agent). */
 function stripSchema(schema: Record<string, unknown>): Record<string, unknown> {
-  const { $schema: _s, ...rest } = schema;
-  return rest;
+  const strip = (v: unknown): unknown => {
+    if (Array.isArray(v)) return v.map(strip);
+    if (!v || typeof v !== 'object') return v;
+    const out: Record<string, unknown> = {};
+    for (const [k, x] of Object.entries(v as Record<string, unknown>)) {
+      if (k === '$schema' || (k === 'additionalProperties' && x === false)) continue;
+      out[k] = strip(x);
+    }
+    return out;
+  };
+  return strip(schema) as Record<string, unknown>;
 }
 
 export async function writeCatalogSkill(workspace: string, catalog: AppCatalog): Promise<void> {

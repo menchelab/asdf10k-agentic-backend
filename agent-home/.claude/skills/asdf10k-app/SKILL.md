@@ -96,7 +96,7 @@ and options, the windows and the commands. The current values of the main viz se
 
 - One change: `[Colour by degree](cmd:settings.set?id=nodes.colorAttribute&value=agent_degree_n)`.
 - A **settings card** - the way to change viz settings (there is no tool call for it). With the
-  window's "Auto-accept viz changes" on (the default) the card applies itself when it arrives and
+  window's "Auto-accept viz changes" on (off by default; the app context's `cards:` line says) the card applies itself when it arrives and
   the feedback line says `Auto-accepted card "..."`; otherwise the user clicks Accept. Every card
   keeps a Revert button; a `Reverted card` feedback line means the user did not like the change.
   Never add your own revert / undo links:
@@ -143,7 +143,7 @@ opacity to 0.1").
 
 `run_app_command({ command, params })` runs a command in the app and returns its result. Allowed:
 the commands the catalog marks "you run it" - among them `rwr.run`, `cluster.run`, the camera /
-layout actions (`nav.*`, `layout.*`) and the AR molecule commands (`xr.molecule.*`). Refused:
+layout actions (`nav.*`, `layout.*`), `node.activate` and the AR molecule commands (`xr.molecule.*`). Refused:
 view changes (`settings.set`, `window.open`, `window.configure`, `window.close` - write them as
 cards, see above) and anything that changes the selection or the user's data (`subset.*`,
 `columns.addFromTsv`) - offer those as buttons.
@@ -170,4 +170,9 @@ cards, see above) and anything that changes the selection or the user's data (`s
   desktop, which shows nothing in 3D); `xr.molecule.select` (`residue`), `xr.molecule.filter`
   (`row`, `key`, `on`) and `xr.molecule.close` act on that open molecule for everyone. It fails
   without AR here or a session; say so. Residue columns: skill `asdf10k-columns`.
+- `node.activate`: `{ node, fly? }` (id or name; several copies: the first) makes one node the
+  active node - the pulse and every open, unfrozen Molecular Structure window (`structure3d`)
+  follow it; the selection stays. On a desktop, the 3D structure of a protein is one window card:
+  `{"type":"window","label":"3D structure of MYH7","window":"structure3d","config":{"node":"MYH7"}}`
+  (shows that node without changing the active node).
 - The app must be open (an Agent window attached to this session); otherwise the call times out.

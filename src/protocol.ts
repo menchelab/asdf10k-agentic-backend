@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 3;
 
 export const RunStatusSchema = z.enum(['success', 'max_turns', 'interrupted', 'error']);
 export type RunStatus = z.infer<typeof RunStatusSchema>;
@@ -201,7 +201,9 @@ export const AppSnapshotSchema = z.object({
   /** `id` = the window's storage key (e.g. distribution-2): what window.configure / window.close address. */
   openWindows: z.array(z.object({ type: z.string(), id: z.string().optional(), title: z.string().optional(), config: z.record(z.string(), z.unknown()) })),
   /** Current values of the viz settings by ring id (`nodes.colorAttribute`, `nodes.colorMethod`, ...). */
-  viz: z.record(z.string(), z.unknown()).optional()
+  viz: z.record(z.string(), z.unknown()).optional(),
+  /** The Agent window's auto-accept toggle: settings cards apply themselves (true) or wait for the user's Accept (protocol 3). */
+  autoAccept: z.boolean().optional()
 });
 export type AppSnapshot = z.infer<typeof AppSnapshotSchema>;
 
@@ -229,7 +231,12 @@ export const CatalogWindowSchema = z.object({
   type: z.string(),
   label: z.string(),
   purpose: z.string().optional(),
-  options: z.array(z.object({ key: z.string(), kind: z.string(), required: z.boolean().optional(), values: z.array(z.string()).optional(), description: z.string().optional() })).optional()
+  /**
+   * `values`: the allowed values (enums, edge columns; for column options only the window's built-in
+   * columns such as `label`). `columnKinds` (protocol 3): a column option takes any node column of these
+   * kinds - the columns themselves are in the app context, not repeated per option.
+   */
+  options: z.array(z.object({ key: z.string(), kind: z.string(), required: z.boolean().optional(), values: z.array(z.string()).optional(), columnKinds: z.array(z.string()).optional(), description: z.string().optional() })).optional()
 });
 export type CatalogWindow = z.infer<typeof CatalogWindowSchema>;
 /**

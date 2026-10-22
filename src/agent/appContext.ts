@@ -72,6 +72,8 @@ export function renderAppContext(snapshot: AppSnapshot, previous: AppSnapshot | 
     lines.push(`selection: ${sel.count} nodes (all ids in input/selection.tsv): ${shown}${sel.count > MAX_IDS_IN_PROMPT ? ', ...' : ''}`);
   }
   lines.push(`active node: ${sel.activeId ?? 'none'}`);
+  // protocol 3: the Agent window's auto-accept toggle (offer vs report a settings / window card)
+  if (snapshot.autoAccept !== undefined) lines.push(snapshot.autoAccept ? 'cards: auto-accepted (settings and window cards apply when they arrive; the user can Revert)' : 'cards: the user accepts by hand (a card is an offer until they click Accept)');
 
   if (snapshot.subsetLibrary.length > 0) {
     lines.push(`subset library (${snapshot.subsetLibrary.length}, ids in input/subset_library.tsv): ${snapshot.subsetLibrary.map((s) => `${s.name} (${s.ids.length})`).join('; ')}`);

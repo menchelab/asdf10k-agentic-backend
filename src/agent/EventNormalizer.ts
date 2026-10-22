@@ -320,11 +320,18 @@ const APP_TOOL_PREFIX = 'mcp__asdf10k__';
 export function summarizeCommand(command: string): string {
   const cmd = command.trim();
   if (!cmd) return '';
-  const first = cmd.split('\n').find((l) => l.trim() && !l.trim().startsWith('#'))?.trim() ?? cmd;
+  const firstLine = cmd.split('\n').find((l) => l.trim() && !l.trim().startsWith('#'))?.trim() ?? cmd;
+  // a chain (`mkdir -p work && python - <<EOF`, `cd x; ls`): the last command is what it is for
+  const first = firstLine.split(/\s*(?:&&|\|\||;)\s*/).filter(Boolean).pop() ?? firstLine;
   const words = first.split(/\s+/);
   const prog = (words[0] ?? '').split('/').pop() ?? '';
   const files = words.slice(1).filter((w) => /^[\w./-]+\.[a-z0-9]{1,5}$/i.test(w) && !w.startsWith('-')).map((w) => w.split('/').pop() ?? w);
   const fileList = files.slice(0, 2).join(', ');
+  // a file written by a heredoc / redirect (`cat > f <<'EOF'`, `cat <<EOF > f`) or tee: "Write f"
+  if (prog === 'tee' || (prog === 'cat' && />/.test(first))) {
+    const target = prog === 'tee' ? words.slice(1).find((w) => !w.startsWith('-') && !w.startsWith('<')) : first.match(/>{1,2}\s*([^\s<>|;&]+)/)?.[1];
+    if (target) return `Write ${target.replace(/^['"]|['"]$/g, '').split('/').pop()}`;
+  }
   // python: a comment or the imports say what it is about
   if (/^python3?$/.test(prog) || prog === 'uv') {
     const comment = cmd.match(/#\s*([^\n"']{4,80})/)?.[1]?.trim();

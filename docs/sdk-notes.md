@@ -16,6 +16,14 @@ and later in production; the dated list with details is section 15 of
 - `permissionMode: 'bypassPermissions'` + `allowDangerouslySkipPermissions: true` run tools without
   prompts; the process refuses to start as root. `AskUserQuestion` is disallowed (it would fall
   through to a prompt).
+- `tools` (since 2026-10-22, `AGENT_TOOLS` in `src/agent/agentOptions.ts`) is the base set of
+  built-in tools: Bash, Read, Write, Edit, Glob, Grep, Skill, TaskCreate / TaskUpdate / TaskList /
+  TaskGet, TodoWrite, WebFetch, WebSearch, ToolSearch; the `mcp__asdf10k__*` tools come from
+  `mcpServers` on top. Checked against the `init` message (an init-only query, aborted before the
+  model call): `Bash, Edit, Glob, Grep, Read, Skill, TaskCreate, TaskGet, TaskList, TaskUpdate,
+  ToolSearch, WebFetch, WebSearch, Write, mcp__asdf10k__run_app_command` - a name the CLI does not
+  have (TodoWrite with the task tools on) is silently left out. Notebooks, subagents, plan mode,
+  worktrees and cron tools are off. The aside query passes `tools: []`.
 - `settingSources: ['project']` + `additionalDirectories: [agent-home]`: skills come from
   `<cwd>/.claude/skills` and `agent-home/.claude/skills` only, not from the user's `~/.claude`.
   `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` because auto memory loads regardless.

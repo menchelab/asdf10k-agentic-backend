@@ -133,6 +133,16 @@ describe('summarizeCommand', () => {
     expect(summarizeCommand('ls out/')).toBe('List files');
     expect(summarizeCommand('mkdir -p out/plots')).toBe('Create folder out/plots');
   });
+
+  it('heredocs and redirects are "Write f"; a chain is labelled by its last command; python - <<EOF is Python', () => {
+    expect(summarizeCommand("mkdir -p /tmp && cat > /tmp/ppr.py <<'EOF'\nimport networkx as nx\nEOF")).toBe('Write ppr.py');
+    expect(summarizeCommand("cat <<EOF > out/notes.md\nhello\nEOF")).toBe('Write notes.md');
+    expect(summarizeCommand('echo x | tee -a work/log.txt')).toBe('Write text');
+    expect(summarizeCommand('tee work/log.txt <<EOF\nx\nEOF')).toBe('Write log.txt');
+    expect(summarizeCommand('cd work && python run.py')).toBe('Run run.py');
+    expect(summarizeCommand('mkdir -p work; ls out/')).toBe('List files');
+    expect(summarizeCommand("mkdir -p work && python - <<'EOF'\nimport networkx as nx\nG = nx.Graph()\nEOF")).toBe('Python: network analysis');
+  });
 });
 
 describe('run cost: the SDK reports a running total, run_end carries the run\'s share', () => {
