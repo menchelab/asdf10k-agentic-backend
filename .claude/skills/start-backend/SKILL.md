@@ -19,6 +19,9 @@ Goal: the user (and possibly headsets or other devices on the same Wi-Fi) opens 
 
 ## 2. Preconditions (fix what is missing, say what you did)
 
+- **Up to date with the app**: `git pull` (or check out the release matching the deployment). The
+  app and the backend share a protocol version (`/api/health` -> `protocol`); after an app release
+  an older backend makes the Agent window warn about the mismatch. Then `npm install`.
 - `node_modules/` exists, else `npm install`.
 - Claude access: a Claude Code login on this machine or `ANTHROPIC_API_KEY` in `.env` (README
   "Claude access"). Without either, start with `AGENT_FAKE=1` only if the user wants a demo without
