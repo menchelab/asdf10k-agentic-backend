@@ -2,6 +2,16 @@
 
 Every commit of every release, newest first.
 
+## 0.6.0 (2026-10-22)
+
+5 commits.
+
+- Agent fix round N (backend): catalog skill as a compact index SKILL.md (one line per setting / window / command, one-line params) + reference.md with the full texts (ppicml 35.9 -> 16.5 KB, size test on a real catalog fixture); the agent loads only its own skills (explicit skills list, disableBundledSkills, three built-ins off by name; verified at init); prompt: structure3d config.node as the no-AR fallback, no explaining the card mechanism; docs (fdc7695)
+- Agent window fixes P2 (backend): protocol 3 - catalog skill by column kind (protocol-2 fallback, stripSchema drops additionalProperties at any depth), cards: line in the app context, prompt: offer vs claim by autoAccept, direction from the current value, work/ not /tmp, auto-accept off by default (was claimed on); tool allowlist AGENT_TOOLS (+ Task*, ToolSearch); step labels for chains / heredocs / python -; session named after its first message; node.activate / structure3d.node in the app skill; tests (e56c32b)
+- Agent window fixes P1 (backend): app context gives the node id format and how often names repeat (graphFiles, appContext), skill + system prompt: URL-encode cmd: values / idsFile, ids vs names; cost per run (runCost.ts: delta of the cumulative SDK total, base from the log on reopen; run_end.sessionCostUsd in protocol, both copies); fake agent /md echo and a fixed cost for the app's e2e; tests (c074725)
+- Docs and agent guidance: the agent learns it may run every command the catalog marks direct (xr.molecule.open / select / filter / close for AR users in a session) - app skill, run_app_command description, catalog note, system prompt, columns skill; README headset setup via the Agent window backend strip and offers; CLAUDE.md vX.Y.Z tags, agentCallable: false never in the catalog (5c4fef1)
+- asdf10k-columns skill: columns with a special meaning - layouts, subsets_a, the UniProt id column, residue lists (hl3d / 3dhl / phosphosites, window_molecular.highlightColumn) and the ClinVar residue types / consequences (residueTypesColumn / residueConsequencesColumn), what the 3D structure window and the AR molecule mode do with them (85a9cfb)
+
 ## 0.5.0 (2026-10-21)
 
 0 commits.
