@@ -290,7 +290,7 @@ curl -L -O https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-
   catalog is kept in the session meta for the policy check.
 - `run_app_command` (`src/agent/appTools.ts`): the agent runs an app command. `src/agent/appCommandPolicy.ts`
   allows the commands whose catalog `presentation` is `direct` (`compute`: `rwr.run`, `cluster.run`; the camera / layout
-  actions `nav.*`, `layout.*`; `node.activate`; the AR molecule commands `xr.molecule.*`); commands the app registers with
+  actions `nav.*`, `layout.*`; `node.activate`; the AR molecule and cube commands `xr.molecule.*`, `xr.cube.*`); commands the app registers with
   `agentCallable: false` (`agent.setBackend`) are not in the catalog at all; the `card` commands `settings.set`,
   `window.open`, `window.configure`, `window.close` are refused with a hint to write a card (the
   app renders `asdf10k` blocks and `cmd:` links to them as change cards with Revert; blocks apply
