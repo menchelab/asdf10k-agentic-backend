@@ -175,4 +175,8 @@ cards, see above) and anything that changes the selection or the user's data (`s
   follow it; the selection stays. On a desktop, the 3D structure of a protein is one window card:
   `{"type":"window","label":"3D structure of MYH7","window":"structure3d","config":{"node":"MYH7"}}`
   (shows that node without changing the active node).
+- `debug.mark`: `{ reason?, text? }` (`shifted` - the box / graph is not where the others see it,
+  `panel`, `jumped`, `other`; a short note) puts a mark with every headset's state into the
+  session's debug log. When the user reports a problem in AR ("it's shifted now"), mark it at once
+  with their words as `text`, then answer.
 - The app must be open (an Agent window attached to this session); otherwise the call times out.
