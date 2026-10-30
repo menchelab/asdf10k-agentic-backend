@@ -2,6 +2,14 @@
 
 Every commit of every release, newest first.
 
+## 0.7.0 (2026-10-30)
+
+3 commits.
+
+- Skill asdf10k-app: debug.mark - when the user reports a problem in AR, mark it in the session's debug log at once with their words (7d98ac8)
+- Agent prompts: the AR cube mode commands xr.cube.enter / xr.cube.exit (run directly, like xr.molecule.*) (ebed3d4)
+- start-backend skill: update to the release matching the app first (shared protocol version, the app warns on a mismatch) (f698c7c)
+
 ## 0.6.0 (2026-10-22)
 
 5 commits.
